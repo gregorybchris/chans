@@ -1,0 +1,95 @@
+/* ~ ~ ~ Fonts ~ ~ ~ */
+
+@font-face {
+	font-family: "montserrat-hairline";
+	src: url("../fonts/Montserrat/Montserrat-Hairline.otf");
+}
+
+@font-face {
+	font-family: "montserrat-light";
+	src: url("../fonts/Montserrat/Montserrat-Light.otf");
+}
+
+@font-face {
+	font-family: "montserrat-regular";
+	src: url("../fonts/Montserrat/Montserrat-Regular.otf");
+}
+
+@font-face {
+	font-family: "montserrat-bold";
+	src: url("../fonts/Montserrat/Montserrat-Bold.otf");
+}
+
+
+/* ~ ~ ~ Colors ~ ~ ~ */
+
+@header: rgb(45, 40, 40);
+@header-text: rgb(255, 250, 250);
+
+@graphics-panel: rgb(60, 55, 55);
+@dialog-panel: rgb(75, 70, 70);
+
+/* ~ ~ ~ General ~ ~ ~ */
+
+html, body {
+	height: 100%;
+}
+
+.content {
+	width: 100%;
+	height: 100%;
+}
+
+/* ~ ~ ~ Header ~ ~ ~ */
+
+.header {
+	height: 40px;
+	background-color: @header;
+	box-shadow: 0px 1px 12px darken(@header, 12%);
+	position: relative;
+	z-index: 2;
+}
+
+.header .title {
+	color: @header-text;
+	font-family: "montserrat-hairline";
+	padding: 13px 0px 0px 30px;
+	display: inline-block;
+}
+
+.header .credits {
+	color: @header-text;
+	font-family: "montserrat-hairline";
+	position: absolute;
+	right: 10px;
+	padding: 13px 30px 0px 0px;
+	display: inline-block;
+}
+
+/* ~ ~ ~ Graphics ~ ~ ~ */
+
+.graphics-panel {
+	background-color: @graphics-panel;
+	display: inline-block;
+	width: 70%;
+	height: 100%;
+	position: relative;
+	z-index: 1;
+}
+
+/* ~ ~ ~ Dialog ~ ~ ~ */
+
+.dialog-panel {
+	background-color: @dialog-panel;
+	display: inline-block;
+	width: 30%;
+	height: 100%;
+	position: relative;
+	z-index: 1;
+}
+
+/* ~ ~ ~ Navigation ~ ~ ~ */
+
+.navigation {
+
+}
