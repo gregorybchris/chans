@@ -10,7 +10,7 @@ Chan's Algorithm, named after Timothy M. Chan, is an optimal output-sensitive al
 
 The reason I chose to do my final project on Chan's algorithm is because of three features that make this algorithm particularly interesting to me.
 
- - Utilizes other (more complex) algorithms
+ - Utilizes other (slower) algorithms
  - Throws away valuable work and starts over
  - Uses a geometric series to avoid ``n^2`` runtime
 

@@ -14,8 +14,10 @@
 	<link rel="stylesheet" type="text/css" href="styles/reset.css">
 	<link href="styles/styles.less" type="text/css" rel="stylesheet/less"/>
 
-	<script src="scripts/less.js" type="text/javascript"></script>
+	<script src="scripts/less.min.js" type="text/javascript"></script>
 	<script src="scripts/three.min.js"></script>
+	<script src="scripts/velocity.min.js"></script>
+	<script src="scripts/jquery.min.js"></script>
 	<script src="scripts/d3.min.js"></script>
 </head>
 <body>
@@ -26,16 +28,18 @@
 
 	<div class="content">
 		<div class="graphics-panel">
-			<div id="graphics-canvas" class="graphics-canvas"></div>
+			<svg id="graphics-canvas" class="graphics-canvas"></svg>
 		</div><div class="dialog-panel">
 			<div class="explanation">
+				<span class="step-counter">Step:&nbsp; <span id="step">0</span>&nbsp;of&nbsp; 10</span>
+
 				<p class="explanation-text">This is a demo of
-					<span class="emph"><a class="link" href="https://en.wikipedia.org/wiki/Chan's_algorithm" target="_blank">Chan's Algorithm</a></span>,
+					<a class="link" href="https://en.wikipedia.org/wiki/Chan's_algorithm" target="_blank">Chan's Algorithm</a>,
 					an optimal solution for computing the convex hull of a
 					point set in <span class="big-o">O(nlogh)</span> time.</p>
 
 				<p class="explanation-text">Press
-					<span class="emph"><a href="https://en.wikipedia.org/wiki/Enter_key" target="_blank" class="link">enter</a></span>
+					<a href="https://en.wikipedia.org/wiki/Enter_key" target="_blank" class="link">enter</a>
 					or use the navigation bar below to walk through the
 					steps of the algorithm.</p>
 			</div>
@@ -44,14 +48,11 @@
 				<div id="back-button" class="nav-button">
 					<span class="nav-button-text">Back</span>
 				</div>
+				<div id="replay-button" class="nav-button">
+					<span class="nav-button-text">Replay</span>
+				</div>
 				<div id="next-button" class="nav-button">
 					<span class="nav-button-text">Next</span>
-				</div>
-				<div id="skip-button" class="nav-button">
-					<span class="nav-button-text">Skip</span>
-				</div>
-				<div id="restart-button" class="nav-button">
-					<span class="nav-button-text">Restart</span>
 				</div>
 			</div>
 		</div>
