@@ -18,6 +18,7 @@
 	<script src="scripts/three.min.js"></script>
 	<script src="scripts/velocity.min.js"></script>
 	<script src="scripts/jquery.min.js"></script>
+	<script src="scripts/hotkeys.js"></script>
 	<script src="scripts/d3.min.js"></script>
 </head>
 <body>
@@ -28,25 +29,35 @@
 
 	<div class="content">
 		<div class="graphics-panel">
-			<svg id="graphics-canvas" class="graphics-canvas"></svg>
+			<svg id="graphics" class="graphics"></svg>
 		</div><div class="dialog-panel">
 			<div class="explanation">
 				<span class="step-counter">Step:&nbsp; <span id="step">0</span>&nbsp;of&nbsp; 10</span>
 
-				<p class="explanation-text">This is a demo of
-					<a class="link" href="https://en.wikipedia.org/wiki/Chan's_algorithm" target="_blank">Chan's Algorithm</a>,
-					an optimal solution for computing the convex hull of a
-					point set in <span class="big-o">O(nlogh)</span> time.</p>
+				<div id="explanation-0" class="explanation-section">
+					<p class="explanation-text">This is a demo of
+						<a class="link" href="https://en.wikipedia.org/wiki/Chan's_algorithm" target="_blank">Chan's Algorithm</a>,
+						an optimal solution for computing the convex hull of a
+						point set in <span class="big-o">O(nlogh)</span> time.</p>
 
-				<p class="explanation-text">Press
-					<a href="https://en.wikipedia.org/wiki/Enter_key" target="_blank" class="link">enter</a>
-					or use the navigation bar below to walk through the
-					steps of the algorithm.</p>
+					<p class="explanation-text">Press
+						<a href="https://en.wikipedia.org/wiki/Enter_key" target="_blank" class="link">enter</a>
+						or use the navigation bar below to walk through the
+						steps of the algorithm.</p>
+				</div>
+
+				<div id="explanation-1" class="explanation-section">
+					<p class="explanation-text">First, let's add some points to our plane.
+						You can <span class="emph">click to the left</span> to add your own points or press R
+						to add a random point.</p>
+
+					<p class="explanation-text">Hit <span class="emph">enter</span> when you are ready to continue.</p>
+				</div>
 			</div>
 
 			<div class="navigation">
-				<div id="back-button" class="nav-button">
-					<span class="nav-button-text">Back</span>
+				<div id="restart-button" class="nav-button">
+					<span class="nav-button-text">Restart</span>
 				</div>
 				<div id="replay-button" class="nav-button">
 					<span class="nav-button-text">Replay</span>
