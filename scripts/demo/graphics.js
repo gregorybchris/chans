@@ -1,14 +1,16 @@
 /**
  * Graphics Class
  */
-var Graphics = function() {
+var Graphics = function(svgID) {
     var svg;
     init();
 
     function init() {
-        svg = d3.select("#graphics")
-            .attr("class", "graphics-svg");
+        svg = d3.select(svgID);
+        addGlowEffect();
+    }
 
+    function addGlowEffect() {
         var defs = svg.append("defs");
         var filter = defs.append("filter")
             .attr("id","glow");
@@ -22,14 +24,7 @@ var Graphics = function() {
             .attr("in","SourceGraphic");
     }
 
-    // Taken from K3N on StackOverflow
-    function crand(min, max, bias, influence) {
-        var rnd = Math.random() * (max - min) + min;
-        var mix = Math.random() * influence;
-        return rnd * (1 - mix) + bias * mix;
-    }
-
-    this.addPoint = function(x, y) {
+    this.drawPoint = function(x, y) {
         var point = svg.append("circle")
             .attr("class", "point")
             .attr("cx", x).attr("cy", y).attr("r", 0)
@@ -39,30 +34,30 @@ var Graphics = function() {
         return point;
     }
 
-    this.addLine = function(x1, y1, x2, y2) {
+    this.drawLine = function(x1, y1, x2, y2) {
         var line = svg.append("line")
             .attr("class", "edge")
             .attr("x1", x1).attr("y1", y1)
             .attr("x2", x1).attr("y2", y1)
             .attr("stroke", "#55F").attr("stroke-width", "2")
             .style("filter", "url(#glow)");
-        Velocity(line.node(), { x2: 200, y2: 200 }, { duration: 500 }, "easeInSine");
+        Velocity(line.node(), { x2: 200, y2: 200 }, { duration: 500, complete: function() {alert("done");}}, "easeInSine");
         return line;
     }
 
-    this.addRandomPoint = function() {
-        var width = svg.style("width").replace("px", "");
-        var height = svg.style("height").replace("px", "");
-        var influence = .7;
-        var xBias = width / 2, yBias = height / 2;
-        var xMin = width * .05, xMax = width - xMin;
-        var yMin = height * .05, yMax = height - yMin;
-        var x = crand(xMin, xMax, xBias, influence)
-        var y = crand(yMin, yMax, yBias, influence)
-        return this.addPoint(x, y);
+    this.remove = function(element) {
+        element.remove();
     }
 
-    this.clear = function() {
+    this.getWidth = function() {
+        return parseInt(svg.style("width").replace("px", ""));
+    }
+
+    this.getHeight = function() {
+        return parseInt(svg.style("height").replace("px", ""));
+    }
+
+    this.clearAll = function() {
         svg.selectAll("circle").remove();
         svg.selectAll("line").remove();
     }
