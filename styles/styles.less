@@ -37,7 +37,7 @@
 
 html, body {
 	height: 100%;
-	font-family: "montserrat-hairline";
+	font-family: montserrat-hairline;
 	min-width: 1000px;
 	min-height: 500px;
 	background: #000;
@@ -73,7 +73,7 @@ html, body {
 	position: relative;
 	z-index: 2;
 	.no-select();
-	font-family: "montserrat-light";
+	font-family: montserrat-light;
 	color: rgb(195, 190, 190);
 }
 
@@ -128,7 +128,7 @@ html, body {
 .step-counter {
 	color: rgb(255, 250, 250);
 	font-size: 15px;
-	font-family: "montserrat-light";
+	font-family: montserrat-light;
 	padding: 5px 0px 20px 0px;
 	display: block;
 	text-align: center;
@@ -145,7 +145,7 @@ html, body {
 	color: rgb(225, 220, 220);
 	font-size: 15px;
 	text-indent: 15px;
-	margin-bottom: 20px;
+	margin-bottom: 10px;
 	line-height: 25px;
 }
 
@@ -181,6 +181,7 @@ html, body {
 	text-align: center;
 	box-sizing: border-box;
 	cursor: default;
+	.no-select();
 }
 
 .nav-button {
@@ -192,7 +193,7 @@ html, body {
 	cursor: default;
 	color: rgb(195, 190, 190);
 	transition: color 200ms;
-	font-family: "montserrat-light";
+	font-family: montserrat-light;
 }
 
 .nav-button:hover {
@@ -203,4 +204,53 @@ html, body {
 .nav-button.disabled:hover {
 	cursor: default;
 	color: rgb(195, 190, 190);
+}
+
+/* ~ ~ ~ Alerts ~ ~ ~ */
+
+.sweet-alert {
+	background-color: rgb(110, 110, 110);
+}
+
+.sweet-alert h2 {
+	color: rgb(30, 30, 30);
+	margin: 5px 0px 5px 0px;
+	font-family: montserrat-bold;
+}
+
+.sweet-alert p {
+	color: rgb(40, 40, 40);
+	font-family: montserrat-light;
+}
+
+.sweet-alert button {
+	transition: background-color 200ms;
+	margin-bottom: 5px;
+	font-family: montserrat-light;
+}
+
+.sweet-alert button.confirm {
+	background-color: rgb(160, 25, 20);
+	transition: background-color 200ms;
+	color: rgb(230, 220, 220);
+}
+
+.sweet-alert button.confirm:hover {
+	background-color: rgb(140, 5, 0);
+}
+.sweet-alert button.confirm:active {
+	background-color: rgb(140, 5, 0);
+}
+
+.sweet-alert button.cancel {
+	background-color: rgb(170, 170, 170);
+	transition: background-color 200ms;
+	color: rgb(20, 20, 20);
+}
+
+.sweet-alert button.cancel:hover {
+	background-color: rgb(150, 150, 150);
+}
+.sweet-alert button.cancel:active {
+	background-color: rgb(150, 150, 150);
 }

@@ -2,6 +2,7 @@
  * Graphics Class
  */
 var Graphics = function(svgID) {
+    var currentColor;
     var svg;
     init();
 

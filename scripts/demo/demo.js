@@ -20,12 +20,21 @@ var Demo = function() {
     }
 
     function restartDemo() {
-        graphics.clearAll();
-        step = 0;
-        points = [];
-        $("#graphics").off("click");
-        unbind("r");
-        updateDemoText();
+        swal({
+                title: "Really?",
+                text: "This will restart the demo",
+                showCancelButton: true,
+                confirmButtonText: "Yes, restart",
+            },
+            function() {
+                graphics.clearAll();
+                step = 0;
+                points = [];
+                $("#graphics").off("click");
+                unbind("p");
+                updateDemoText();
+            }
+        );
     }
 
     function toggleAnimating() {
@@ -40,12 +49,13 @@ var Demo = function() {
 
     function updateDemoText() {
         $(".explanation-section").hide();
-        $("#explanation-" + step).show();
+        $(".explanation-section[data-step='" + step + "']").show();
+        // $("#explanation-" + step).show();
         $("#step").html(step);
     }
 
     function replayStep() {
-        alert("Unimplemented");
+        swal("Unimplemented", "Sorry, not done yet");
     }
 
     function nextStep() {
@@ -66,12 +76,16 @@ var Demo = function() {
         else if (step == JARVIS_MARCH_STEP)
             moveOn(runCompletedHullStep);
         else if (step == COMPLETED_HULL_STEP)
-            alert("Unimplemented")
+            swal("Unimplemented", "Sorry, not done yet");
     }
 
     function runCreationStep() {
         $("#graphics").on("click", function() {
             points.push(graphics.drawPoint(event.offsetX, event.offsetY));
+        });
+
+        hotkeys("p", function(event, handler) {
+            points.push(drawRandomPoint());
         });
 
         function drawRandomPoint() {
@@ -91,17 +105,14 @@ var Demo = function() {
             var y = crand(yMin, yMax, yBias, influence)
             return graphics.drawPoint(x, y);
         }
-
-        hotkeys("r", function(event, handler) { points.push(drawRandomPoint()); });
-
     }
 
     function endCreationStep(success) {
         if (points.length < 10)
-            alert("Please Add More Points :(");
+            swal("Wait!", "Please add more points before continuing");
         else {
             $("#graphics").off("click");
-            unbind("r");
+            unbind("p");
             success();
         }
     }
@@ -123,16 +134,16 @@ var Demo = function() {
     }
 
     function setFocus() {
-        hotkeys("left,right,enter,esc", function(event, handler) { onKeyPress(handler.key); });
+        hotkeys("left,right,space,r", function(event, handler) { onKeyPress(handler.key); });
         $("#restart-button").on("click", function() { onButtonPress("restart"); });
         $("#replay-button").on("click", function() { onButtonPress("replay"); });
         $("#next-button").on("click", function() { onButtonPress("next"); });
     }
 
     function onKeyPress(key) {
-        if (key == "enter")
+        if (key == "space")
             nextStep();
-        else if (key == "esc")
+        else if (key == "r")
             restartDemo();
     }
 

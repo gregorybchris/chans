@@ -11,8 +11,9 @@
 		Geometry,Comp163,Javascript,Computer,Science,Tufts,University">
 	<meta name="author" content="Chris Gregory">
 
-	<link rel="stylesheet" type="text/css" href="styles/reset.css">
-	<link href="styles/styles.less" type="text/css" rel="stylesheet/less"/>
+	<link href="styles/reset.css" rel="stylesheet" type="text/css">
+	<link href="styles/lib/sweetalert.css" rel="stylesheet" type="text/css"/>
+	<link href="styles/styles.less" rel="stylesheet/less" type="text/css"/>
 
 	<script src="scripts/lib/less.min.js" type="text/javascript"></script>
 	<script src="scripts/lib/three.min.js"></script>
@@ -20,6 +21,7 @@
 	<script src="scripts/lib/jquery.min.js"></script>
 	<script src="scripts/lib/hotkeys.js"></script>
 	<script src="scripts/lib/d3.min.js"></script>
+	<script src="scripts/lib/sweetalert.min.js"></script>
 </head>
 <body>
 	<div class="header">
@@ -34,25 +36,52 @@
 			<div class="explanation">
 				<span class="step-counter">Step:&nbsp; <span id="step">0</span>&nbsp;of&nbsp; 5</span>
 
-				<div id="explanation-0" class="explanation-section">
+				<!-- WELCOME STEP -->
+				<div data-step="0" class="explanation-section">
 					<p class="explanation-text">This is a demo of
 						<a class="link" href="https://en.wikipedia.org/wiki/Chan's_algorithm" target="_blank">Chan's Algorithm</a>,
 						an optimal solution for computing the
 						<a class="link" href="https://en.wikipedia.org/wiki/Convex_hull" target="_blank">convex hull</a> of a
 						point set in <span class="big-o">O(nlogh)</span> time.</p>
-
-					<p class="explanation-text">Press
-						<a href="https://en.wikipedia.org/wiki/Enter_key" target="_blank" class="link">enter</a>
-						or use the navigation bar below to walk through the
+					<p class="explanation-text">Hit the
+						<a href="https://en.wikipedia.org/wiki/Space_bar" target="_blank" class="link">space bar</a>
+						or use the buttons below to walk through the
 						steps of the algorithm.</p>
 				</div>
 
-				<div id="explanation-1" class="explanation-section">
+				<!-- POINT CREATION STEP -->
+				<div data-step="1" class="explanation-section">
 					<p class="explanation-text">First, let's add some points to our plane.
-						You can <span class="emph">click to the left</span> to add your own points or <span class="emph">press R</span>
-						to add a random point.</p>
+						You can <span class="emph">click to the left</span> to add your own points or <span class="emph">press P</span>
+						to add random points.</p>
+					<p class="explanation-text">Hit the <span class="emph">space bar</span> when you are ready to continue.</p>
+				</div>
 
-					<p class="explanation-text">Hit <span class="emph">enter</span> when you are ready to continue.</p>
+				<!-- GROUPING STEP -->
+				<div data-step="2" class="explanation-section">
+					<p class="explanation-text">Now that we have our points we pick some small constant <span class="emph">m</span>.
+						The choice of <span class="emph">m</span> will be explained later in the demo.</p>
+					<p class="explanation-text">For now, we will partition our point set into groups of <span class="emph">m</span> points.</p>
+					<p class="explanation-text">In this example <span class="emph">m</span> is set to <span class="emph">5</span> and each color
+						represents a group of <span class="emph">m</span> points.</p>
+				</div>
+
+				<!-- GRAHAM SCAN STEP -->
+				<div data-step="3" class="explanation-section">
+					<p class="explanation-text"></p>
+					<p class="explanation-text"></p>
+				</div>
+
+				<!-- JARVIS MARCH STEP -->
+				<div data-step="3" class="explanation-section">
+					<p class="explanation-text"></p>
+					<p class="explanation-text"></p>
+				</div>
+
+				<!-- COMPLETED HULL STEP -->
+				<div data-step="3" class="explanation-section">
+					<p class="explanation-text"></p>
+					<p class="explanation-text"></p>
 				</div>
 			</div>
 
