@@ -4,7 +4,7 @@ My final project for the Computational Geometry course (COMP 163) at Tufts.
 
 ### Background
 
-Over the semester I learned about several algorithms used to compute the convex hull of a point set or a polygon. The course covered Gift Wrapping (Jarvis March), Graham Scan, Quickhull, Melkman, Kirkpatrick–Seidel (Ultimate), and finally, Chan's Algorithm.
+Over the semester I learned about several algorithms used to compute the convex hull of a point set or a polygon. The course covered Gift Wrapping (Jarvis March), Graham Scan, Quickhull, Monotone Chain, Melkman, Kirkpatrick & Seidel (Ultimate), and finally, Chan's Algorithm.
 
 Chan's Algorithm, named after Timothy M. Chan, is an optimal output-sensitive algorithm to compute the convex hull of a point set in ``O(nlogh)`` time. The variable ``n`` is the total number of points and ``h`` is the number of points on the output convex hull (hence output-sensitive).
 
