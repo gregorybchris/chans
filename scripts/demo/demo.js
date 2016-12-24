@@ -151,6 +151,7 @@ var Demo = function() {
                             "#f1c40f", "#e67e22", "#e74c3c", "#ecf0f1",
                             "#16a085", "#27ae60", "#2980b9", "#8e44ad",
                             "#f39c12", "#d35400","#c0392b", "#bdc3c7"];
+
         var groupID = 0;
         var currentGroup = [];
         config.points.forEach(function(point, index) {
@@ -166,7 +167,7 @@ var Demo = function() {
             var toAdd = graphics.drawPoint(x, y);
             currentGroup.push(toAdd.point);
 
-            if (index % config.m == 0) {
+            if (index % config.m == config.m - 1) {
                 groupID++;
                 config.groups.push(currentGroup);
                 currentGroup = [];

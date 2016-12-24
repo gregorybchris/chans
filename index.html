@@ -16,7 +16,6 @@
 	<link href="styles/styles.less" rel="stylesheet/less" type="text/css"/>
 
 	<script src="scripts/lib/less.min.js" type="text/javascript"></script>
-	<script src="scripts/lib/three.min.js"></script>
 	<script src="scripts/lib/velocity.min.js"></script>
 	<script src="scripts/lib/jquery.min.js"></script>
 	<script src="scripts/lib/hotkeys.js"></script>
@@ -38,15 +37,38 @@
 
 				<!-- WELCOME STEP -->
 				<div data-step="0" class="explanation-section">
-					<p class="explanation-text">This is a demo of
+					<p class="explanation-text">This is a dynamic demo of
 						<a class="link" href="https://en.wikipedia.org/wiki/Chan's_algorithm" target="_blank">Chan's Algorithm</a>,
-						an optimal solution for computing the
+						an optimal, output-sensitive algorithm for computing the
 						<a class="link" href="https://en.wikipedia.org/wiki/Convex_hull" target="_blank">convex hull</a> of a
 						point set in <span class="big-o">O(nlogh)</span> time.</p>
+					<p class="explanation-text"><span class="emph">n</span> is the number of input points
+						and <span class="emph">h</span> is the number of output hull points.</p>
 					<p class="explanation-text">Hit the
 						<a href="https://en.wikipedia.org/wiki/Space_bar" target="_blank" class="link">space bar</a>
 						or use the buttons below to walk through the
 						steps of the algorithm.</p>
+
+					<br /><br />
+					<p class="explanation-text">
+						Additional resources:
+						<br /> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+						<a href="http://www.cs.ucsb.edu/~suri/cs235/ChanCH.pdf" target="_blank" class="link">Chan's original paper</a>
+						<br /> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+						<a href="https://www.youtube.com/watch?v=020v2md_WHw" target="_blank" class="link">Video walkthrough</a>
+						<br /> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+						<a href="http://tomswitzer.net/2010/12/2d-convex-hulls-chans-algorithm" target="_blank" class="link">Python implementation</a>
+						<br /> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+						<a href="http://www.utdallas.edu/~daescu/convexhull.pdf" target="_blank" class="link">Mathematical explanation</a>
+						<br /> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+						<a href="https://bost.ocks.org/mike/algorithms" target="_blank" class="link">Visualizing algorithms</a>
+						<br /> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+						<a href="https://github.com/gregorybchris" target="_blank" class="link">Demo source code</a>
+						<br /> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+						<a href="https://d3js.org" target="_blank" class="link">D3.js</a>
+						<a href="http://velocityjs.org" target="_blank" class="link">Velocity.js</a>
+
+					</p>
 				</div>
 
 				<!-- POINT CREATION STEP -->
@@ -61,27 +83,66 @@
 				<div data-step="2" class="explanation-section">
 					<p class="explanation-text">Now that we have our points, we pick some small constant <span class="emph">m</span>.
 						The choice of <span class="emph">m</span> will be explained later in the demo.</p>
-					<p class="explanation-text">For now, we will partition our point set into groups of <span class="emph">m</span> points.</p>
+					<p class="explanation-text">We partition our point set into groups of <span class="emph">m</span> points.</p>
 					<p class="explanation-text">In this example <span class="emph">m</span> is set to <span class="emph">5</span> and each color
 						represents a group of <span class="emph">m</span> points.</p>
 				</div>
 
 				<!-- GRAHAM SCAN STEP -->
 				<div data-step="3" class="explanation-section">
-					<p class="explanation-text"></p>
-					<p class="explanation-text"></p>
+					<p class="explanation-text">Given these groups of <span class="emph">m</span>
+						points, we find the convex hull of
+						each group with an <span class="big-o">O(nlogn)</span>
+						algorithm. In this example we use
+						<a class="link" href="https://en.wikipedia.org/wiki/Graham_scan" target="_blank">Graham Scan</a>.</p>
+					<p class="explanation-text">Because each group has size <span class="emph">m</span>
+						we can convex hull each group in <span class="big-o">O(mlogm)</span>.
+						There are <span class="big-o">O(n/m)</span> groups.</p>
+					<p class="explanation-text">In total this step takes <span class="big-o">O(nlogm)</span> time.</p>
 				</div>
 
 				<!-- JARVIS MARCH STEP -->
-				<div data-step="3" class="explanation-section">
-					<p class="explanation-text"></p>
-					<p class="explanation-text"></p>
+				<div data-step="4" class="explanation-section">
+					<p class="explanation-text">We then use
+						<a class="link" href="https://en.wikipedia.org/wiki/Gift_wrapping_algorithm" target="_blank">Gift wrapping</a>,
+						an <span class="big-o">O(nh)</span> algorithm on the small convex hulls.</p>
+					<p class="explanation-text">To use gift wrapping on convex hulls rather than points we
+						can perform a
+						<a class="link" href="https://en.wikipedia.org/wiki/Binary_search_algorithm" target="_blank">binary search</a>
+						to determine the
+						<a class="link" href="https://en.wikipedia.org/wiki/Tangent" target="_blank">tangent</a>
+						between two convex hulls with all points on one side.
+						A binary search on a small convex hull takes <span class="big-o">O(logm)</span>.</p>
+					<p class="explanation-text">We can compute tangents for all <span class="big-o">O(n/m)</span>
+						groups in <span class="big-o">O(n/m * logm)</span> time. Doing this we get one edge of
+						the convex hull, specifically, the tangent with all <span class="emph">n</span> points on one side.
+						We must do this for all <span class="emph">h</span> hull points.</p>
+					<p class="explanation-text">We can assume for now that <span class="emph">m</span> < <span class="emph">h</span> so this step is
+						<span class="big-o">O(nlogh)</span> like the last step.</p>
+					<p class="explanation-text">We have to be careful that we do not exceed <span class="emph">h</span>
+						iterations of gift wrapping given our <span class="big-o">O(n/m)</span> input size.
+						Therefore, we halt gift wrapping execution after <span class="emph">m</span> iterations.</p>
 				</div>
 
 				<!-- COMPLETED HULL STEP -->
-				<div data-step="3" class="explanation-section">
-					<p class="explanation-text"></p>
-					<p class="explanation-text"></p>
+				<div data-step="5" class="explanation-section">
+					<p class="explanation-text">We want to increase <span class="emph">m</span> until it equals <span class="emph">h</span>.
+						If we increase <span class="emph">m</span> too slowly our gift wrapping time overall will surpass
+						<span class="big-o">O(nlogh)</span>. On the other hand, if we increase <span class="emph">m</span> too quickly
+						some gift wrapping iteration will take much more than <span class="big-o">O(nlogh)</span> on its own.</p>
+					<p class="explanation-text">To solve this problem we use a
+						<a class="link" href="https://en.wikipedia.org/wiki/Double_exponential_function" target="_blank">double exponential</a>.
+						We let
+						<span class="emph">m</span> = <span class="emph">2<sup>2<sup>t</sup></sup></span>
+						where <span class="emph">t</span> is the current iteration number.</p>
+					<p class="explanation-text">We throw away the work we do in each attempt
+						at finding an <span class="emph">m</span> equal to <span class="emph">h</span>. Because iterations
+						form a
+						<a class="link" href="https://en.wikipedia.org/wiki/Geometric_series" target="_blank">geometric series</a>
+						the total work is still <span class="big-o">O(nlogh)</span>.</p>
+						<p class="explanation-text">We now have the convex hull of our orignal point set.</p>
+						<p class="explanation-text">Press restart to try it again!</p>
+
 				</div>
 			</div>
 
@@ -89,9 +150,9 @@
 				<div id="restart-button" class="nav-button">
 					<span class="nav-button-text">Restart</span>
 				</div>
-				<div id="replay-button" class="nav-button">
+				<!-- <div id="replay-button" class="nav-button">
 					<span class="nav-button-text">Replay</span>
-				</div>
+				</div> -->
 				<div id="next-button" class="nav-button">
 					<span class="nav-button-text">Next</span>
 				</div>

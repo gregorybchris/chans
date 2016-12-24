@@ -30,6 +30,7 @@
 @dialog-panel: rgb(75, 70, 70);
 
 @navigation: rgb(45, 40, 40);
+@navigation-height: 40px;
 
 @select-background: darken(@dialog-panel, 3%);
 
@@ -41,7 +42,7 @@ html, body {
 	min-width: 1000px;
 	min-height: 500px;
 	background: #000;
-	overflow-y: hidden;
+	overflow: hidden;
 }
 
 .content {
@@ -63,6 +64,27 @@ html, body {
 
 ::selection {
     background: @select-background;
+}
+
+/* Let's get this party started */
+::-webkit-scrollbar {
+    width: 6px;
+}
+
+::-webkit-scrollbar-track {
+    -webkit-box-shadow: inset 0 0 3px rgba(45, 40, 40, 0.8);
+    -webkit-border-radius: 0px;
+    border-radius: 0px;
+}
+
+::-webkit-scrollbar-thumb {
+    -webkit-border-radius: 0px;
+    border-radius: 0px;
+    background: rgb(55, 50, 50);
+}
+
+::-webkit-scrollbar-thumb:window-inactive {
+	background: rgb(55, 50, 50);
 }
 
 /* ~ ~ ~ Header ~ ~ ~ */
@@ -136,10 +158,11 @@ html, body {
 }
 
 .explanation {
-	height: 80%;
+	height: calc(~"100% - @{navigation-height}");
 	width: 100%;
 	padding: 20px;
 	box-sizing: border-box;
+	overflow-y: auto;
 }
 
 .explanation-text {
@@ -148,11 +171,6 @@ html, body {
 	text-indent: 15px;
 	margin-bottom: 10px;
 	line-height: 25px;
-}
-
-.emph {
-	color: rgb(255, 250, 250);
-	font-family: montserrat-light;
 }
 
 .link {
@@ -168,15 +186,31 @@ html, body {
 	background-color: darken(@dialog-panel, 10%);
 }
 
+sup {
+	font-size: xx-small;
+	vertical-align: super;
+}
+
+sub {
+	font-size: xx-small;
+	vertical-align: sub;
+}
+
+.emph {
+	color: rgb(255, 250, 250);
+	font-family: montserrat-light;
+}
+
 .big-o {
 	font-style: italic;
+	// color: rgb(255, 250, 250);
 	font-family: montserrat-light;
 }
 
 .navigation {
 	width: 100%;
 	background-color: @navigation;
-	height: 40px;
+	height: @navigation-height;
 	position: absolute;
 	bottom: 0px;
 	text-align: center;
