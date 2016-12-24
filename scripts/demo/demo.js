@@ -145,14 +145,17 @@ var Demo = function() {
                             "#16a085", "#27ae60", "#2980b9", "#8e44ad",
                             "#f39c12", "#d35400","#c0392b", "#bdc3c7"];
 
-        var groupID = 0;
-        var currentGroup = [];
-        config.points.forEach(function(point, index) {
-            var pointColor = groupColors[Math.floor(index / 5) % groupColors.length];
-            graphics.setColor(pointColor);
-            graphics.setTransition(250);
 
-            // console.log(point);
+
+        var groupID = 0;
+        var pointID = 0;
+        var currentGroup = [];
+        function groupPoints(points) {
+            var point = points.pop();
+            var pointColor = groupColors[Math.floor(pointID / 5) % groupColors.length];
+            graphics.setColor(pointColor);
+            graphics.setTransition(75);
+
             var x = point.attr("cx");
             var y = point.attr("cy");
 
@@ -160,13 +163,21 @@ var Demo = function() {
             var toAdd = graphics.drawPoint(x, y);
             currentGroup.push(toAdd.point);
 
-            if (index % config.m == config.m - 1) {
+            if (pointID % config.m == config.m - 1) {
                 groupID++;
                 config.groups.push(currentGroup);
                 currentGroup = [];
             }
-        });
+            pointID++;
+
+            toAdd.promise.then(function() {
+                if (points.length > 0)
+                    groupPoints(points);
+            });
+        }
+        groupPoints(config.points.slice());
         config.groups.push(currentGroup);
+
         console.log(config.groups);
 
         toggleAnimating();

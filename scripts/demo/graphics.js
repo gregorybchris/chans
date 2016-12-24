@@ -4,8 +4,8 @@
 var Graphics = function(svgID) {
     var settings = {
         color: "#000",
-        stroke: 2,
-        glow: true,
+        stroke: 3,
+        glow: false,
         transition: 250
     }
     var pointSize = 6;
@@ -15,6 +15,12 @@ var Graphics = function(svgID) {
     function init() {
         svg = d3.select(svgID);
         addGlowEffect();
+        setupTypes();
+    }
+
+    function setupTypes() {
+        svg.append("g").attr("id", "lines");
+        svg.append("g").attr("id", "points");
     }
 
     function addGlowEffect() {
@@ -48,7 +54,7 @@ var Graphics = function(svgID) {
     }
 
     this.drawPoint = function(x, y) {
-        var point = svg.append("circle")
+        var point = svg.select("#points").append("circle")
             .attr("class", "point")
             .attr("cx", x).attr("cy", y).attr("r", 0)
             .attr("fill", settings.color);
@@ -67,7 +73,7 @@ var Graphics = function(svgID) {
     }
 
     this.drawLine = function(x1, y1, x2, y2) {
-        var line = svg.append("line")
+        var line = svg.select("#lines").append("line")
             .attr("class", "edge")
             .attr("x1", x1).attr("y1", y1)
             .attr("x2", x1).attr("y2", y1)
