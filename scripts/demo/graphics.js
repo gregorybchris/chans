@@ -103,8 +103,4 @@ var Graphics = function(svgID) {
         svg.selectAll("circle").remove();
         svg.selectAll("line").remove();
     }
-
-    // this.getSVG = function() {
-    //     return svg;
-    // }
 }

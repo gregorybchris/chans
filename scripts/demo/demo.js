@@ -18,15 +18,6 @@ var Demo = function() {
         resetConfig();
         setFocus();
         updateDemoText();
-
-        // $("#graphics").on("click", function() {
-        //     var x = event.offsetX;
-        //     var y = event.offsetY;
-        //     graphics.setTransition(300);
-        //     graphics.setColor("#ff9");
-        //     var toAdd = graphics.drawLine(x, y, x + 50, y + 50);
-        //     console.log(toAdd);
-        // });
     }
 
     function restartDemo() {
@@ -138,6 +129,8 @@ var Demo = function() {
         if (config.points.length < 10)
             swal("Wait!", "Please add more points before continuing");
         else {
+            if (config.points.length > 60)
+                graphics.setGlow(false);
             $("#graphics").off("click");
             unbind("p");
             success();
@@ -147,7 +140,7 @@ var Demo = function() {
     function runGroupingStep() {
         toggleAnimating();
 
-        var groupColors = ["#1abc9c", "#2ecc71", "#3498db", "#9b59b6",
+        var groupColors = ["#1abc9c", "#3498db", "#9b59b6", "#2ecc71",
                             "#f1c40f", "#e67e22", "#e74c3c", "#ecf0f1",
                             "#16a085", "#27ae60", "#2980b9", "#8e44ad",
                             "#f39c12", "#d35400","#c0392b", "#bdc3c7"];
@@ -157,7 +150,7 @@ var Demo = function() {
         config.points.forEach(function(point, index) {
             var pointColor = groupColors[Math.floor(index / 5) % groupColors.length];
             graphics.setColor(pointColor);
-            graphics.setTransition(100);
+            graphics.setTransition(250);
 
             // console.log(point);
             var x = point.attr("cx");
@@ -180,7 +173,25 @@ var Demo = function() {
     }
 
     function runGrahamScanStep() {
+        toggleAnimating();
 
+        config.groups.forEach(function(group) {
+            group.forEach(function(pointA) {
+                group.forEach(function(pointB) {
+                    var groupColor = pointA.attr("fill");
+                    graphics.setColor(groupColor);
+                    graphics.setTransition(1000);
+                    var xA = pointA.attr("cx");
+                    var yA = pointA.attr("cy");
+                    var xB = pointB.attr("cx");
+                    var yB = pointB.attr("cy");
+
+                    var toAdd = graphics.drawLine(xA, yA, xB, yB);
+                });
+            });
+        });
+
+        toggleAnimating();
     }
 
     function runJarvisMarchStep() {
@@ -199,10 +210,12 @@ var Demo = function() {
     }
 
     function onKeyPress(key) {
-        if (key == "space")
-            nextStep();
-        else if (key == "r")
-            restartDemo();
+        if (!animating) {
+            if (key == "space")
+                nextStep();
+            else if (key == "r")
+                restartDemo();
+        }
     }
 
     function onButtonPress(button) {
@@ -218,72 +231,3 @@ var Demo = function() {
 }
 
 var demo = new Demo();
-
-
-// function initListeners() {
-//     hotkeys("left,right,enter,space,esc", function(event, handler) {
-//         var c = handler.key;
-//         if (c == "enter" || c == "space" || c == "right")
-//             nextStep();
-//         else if (c == "left")
-//             graphics.addRandomPoint();
-//         else if (c == "esc")
-//             restart();
-//     });
-//
-//     hotkeys("l", function(event, handler) {
-//         var c = handler.key;
-//         if (c == "l")
-//             graphics.addLine(50, 50, 10, 10);
-//     });
-//
-//     $("#restart-button").on("click", function() {
-//         restart();
-//     });
-//
-//     $("#replay-button").on("click", function() {
-//         replayStep();
-//     });
-//
-//     $("#next-button").on("click", function() {
-//         nextStep();
-//     });
-// }
-//
-// function initDemo() {
-//     updateExplanation();
-// }
-//
-// function updateExplanation() {
-//     $(".explanation-section").hide();
-//     $("#explanation-" + step).show();
-// }
-//
-// function updateStepCounter() {
-//     $("#step").html(step);
-// }
-//
-// function restart() {
-//     graphics.clearAll();
-//     goToStep(0);
-// }
-//
-// function replayStep() {
-//     alert("REPLAY");
-// }
-//
-// function goToStep(step) {
-//     if (!animating && step <= totalSteps) {
-//         this.step = step;
-//         updateStepCounter();
-//         updateExplanation();
-//     }
-// }
-//
-// function nextStep() {
-//     goToStep(step + 1);
-// }
-//
-// $("#graphics").on("click", function() {
-//     graphics.addPoint(event.offsetX, event.offsetY);
-// });
