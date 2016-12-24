@@ -9,14 +9,24 @@ var Demo = function() {
     var lastStep = 5;
     var step = 0;
     var animating = false;
-    var points = [];
+    var config;
     var graphics;
     init();
 
     function init() {
         graphics = new Graphics("#graphics");
+        resetConfig();
         setFocus();
         updateDemoText();
+
+        // $("#graphics").on("click", function() {
+        //     var x = event.offsetX;
+        //     var y = event.offsetY;
+        //     graphics.setTransition(300);
+        //     graphics.setColor("#ff9");
+        //     var toAdd = graphics.drawLine(x, y, x + 50, y + 50);
+        //     console.log(toAdd);
+        // });
     }
 
     function restartDemo() {
@@ -28,13 +38,22 @@ var Demo = function() {
             },
             function() {
                 graphics.clearAll();
-                step = 0;
-                points = [];
+                resetConfig();
                 $("#graphics").off("click");
                 unbind("p");
+                step = 0;
                 updateDemoText();
             }
         );
+    }
+
+    function resetConfig() {
+        config = {
+            m: 5,
+            points: [],
+            groups: [],
+            groupHulls: []
+        }
     }
 
     function toggleAnimating() {
@@ -48,8 +67,10 @@ var Demo = function() {
     }
 
     function updateDemoText() {
-        $(".explanation-section").hide();
-        $(".explanation-section[data-step='" + step + "']").show();
+        $(".explanation-section").fadeOut(100).promise().done(function() {
+            $(".explanation-section[data-step='" + step + "']").fadeIn(500);
+        });
+
         // $("#explanation-" + step).show();
         $("#step").html(step);
     }
@@ -81,11 +102,17 @@ var Demo = function() {
 
     function runCreationStep() {
         $("#graphics").on("click", function() {
-            points.push(graphics.drawPoint(event.offsetX, event.offsetY));
+            graphics.setColor("#AAA");
+            graphics.setTransition(250);
+            var toAdd = graphics.drawPoint(event.offsetX, event.offsetY);
+            config.points.push(toAdd.point);
         });
 
         hotkeys("p", function(event, handler) {
-            points.push(drawRandomPoint());
+            graphics.setColor("#AAA");
+            graphics.setTransition(250);
+            var toAdd = drawRandomPoint();
+            config.points.push(toAdd.point);
         });
 
         function drawRandomPoint() {
@@ -108,7 +135,7 @@ var Demo = function() {
     }
 
     function endCreationStep(success) {
-        if (points.length < 10)
+        if (config.points.length < 10)
             swal("Wait!", "Please add more points before continuing");
         else {
             $("#graphics").off("click");
@@ -118,7 +145,37 @@ var Demo = function() {
     }
 
     function runGroupingStep() {
+        toggleAnimating();
 
+        var groupColors = ["#1abc9c", "#2ecc71", "#3498db", "#9b59b6",
+                            "#f1c40f", "#e67e22", "#e74c3c", "#ecf0f1",
+                            "#16a085", "#27ae60", "#2980b9", "#8e44ad",
+                            "#f39c12", "#d35400","#c0392b", "#bdc3c7"];
+        var groupID = 0;
+        var currentGroup = [];
+        config.points.forEach(function(point, index) {
+            var pointColor = groupColors[Math.floor(index / 5) % groupColors.length];
+            graphics.setColor(pointColor);
+            graphics.setTransition(100);
+
+            // console.log(point);
+            var x = point.attr("cx");
+            var y = point.attr("cy");
+
+            graphics.remove(point);
+            var toAdd = graphics.drawPoint(x, y);
+            currentGroup.push(toAdd.point);
+
+            if (index % config.m == 0) {
+                groupID++;
+                config.groups.push(currentGroup);
+                currentGroup = [];
+            }
+        });
+        config.groups.push(currentGroup);
+        console.log(config.groups);
+
+        toggleAnimating();
     }
 
     function runGrahamScanStep() {

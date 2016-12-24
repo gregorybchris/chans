@@ -41,6 +41,7 @@ html, body {
 	min-width: 1000px;
 	min-height: 500px;
 	background: #000;
+	overflow-y: hidden;
 }
 
 .content {
@@ -164,7 +165,7 @@ html, body {
 }
 
 .link:hover {
-	background-color: darken(@dialog-panel, 9%);
+	background-color: darken(@dialog-panel, 10%);
 }
 
 .big-o {
@@ -201,15 +202,21 @@ html, body {
 	color: rgb(255, 250, 250);
 }
 
+.nav-button.disabled {
+	cursor: default;
+	color: rgb(180, 175, 175);
+}
+
 .nav-button.disabled:hover {
 	cursor: default;
-	color: rgb(195, 190, 190);
+	color: rgb(180, 175, 175);
 }
 
 /* ~ ~ ~ Alerts ~ ~ ~ */
 
 .sweet-alert {
-	background-color: rgb(110, 110, 110);
+	background-color: rgb(125, 125, 125);
+	opacity: 0.9;
 }
 
 .sweet-alert h2 {
