@@ -1,3 +1,6 @@
+/**
+ * Demo Class
+ */
 var Demo = function() {
     var WELCOME_STEP = 0;
     var CREATION_STEP = 1;
@@ -13,6 +16,9 @@ var Demo = function() {
     var graphics;
     init();
 
+    /**
+     * Acts as a constructor for the Demo class
+     */
     function init() {
         graphics = new Graphics("#graphics");
         resetConfig();
@@ -20,6 +26,9 @@ var Demo = function() {
         updateDemoText();
     }
 
+    /**
+     * Resets the instatance fields to replay the demo
+     */
     function restartDemo() {
         swal({
                 title: "Really?",
@@ -38,6 +47,9 @@ var Demo = function() {
         );
     }
 
+    /**
+     * Sets the initial demo configuration values
+     */
     function resetConfig() {
         config = {
             m: 5,
@@ -47,6 +59,9 @@ var Demo = function() {
         }
     }
 
+    /**
+     * Toggles the animating flag to signal whether graphics are animating
+     */
     function toggleAnimating() {
         if (animating) {
             $(".nav-button").removeClass("disabled");
@@ -57,6 +72,9 @@ var Demo = function() {
         animating = !animating;
     }
 
+    /**
+     * Updates the explanation on the screen associated with a step in the demo
+     */
     function updateDemoText() {
         $(".explanation-section").fadeOut(100).promise().done(function() {
             $(".explanation-section[data-step='" + step + "']").fadeIn(500);
@@ -66,10 +84,16 @@ var Demo = function() {
         $("#step").html(step);
     }
 
+    /**
+     * Replays a step in the demo
+     */
     function replayStep() {
         swal("Unimplemented", "Sorry, not done yet");
     }
 
+    /**
+     * Moves to the next step in the demo
+     */
     function nextStep() {
         function moveOn(stepRunner) {
             step++;
@@ -91,6 +115,9 @@ var Demo = function() {
             swal("Unimplemented", "Sorry, not done yet");
     }
 
+    /**
+     * Runs the point creation step
+     */
     function runCreationStep() {
         $("#graphics").on("click", function() {
             graphics.setColor("#AAA");
@@ -125,6 +152,9 @@ var Demo = function() {
         }
     }
 
+    /**
+     * Runs after the creation step is complete to see if there are enough points
+     */
     function endCreationStep(success) {
         if (config.points.length < 10)
             swal("Wait!", "Please add more points before continuing");
@@ -137,89 +167,173 @@ var Demo = function() {
         }
     }
 
+    /**
+     * Runs the point grouping step
+     */
     function runGroupingStep() {
-        toggleAnimating();
-
         var groupColors = ["#1abc9c", "#3498db", "#9b59b6", "#2ecc71",
                             "#f1c40f", "#e67e22", "#e74c3c", "#ecf0f1",
                             "#16a085", "#27ae60", "#2980b9", "#8e44ad",
                             "#f39c12", "#d35400","#c0392b", "#bdc3c7"];
 
-
-
-        var groupID = 0;
-        var pointID = 0;
-        var currentGroup = [];
+        // Recursive function to iterate over all points to be grouped with animation
         function groupPoints(points) {
+            // Group and color the new point
+            var groupID = config.groups.length - 1;
             var point = points.pop();
-            var pointColor = groupColors[Math.floor(pointID / 5) % groupColors.length];
-            graphics.setColor(pointColor);
-            graphics.setTransition(75);
-
+            var pointColor = groupColors[groupID % groupColors.length];
             var x = point.attr("cx");
             var y = point.attr("cy");
-
+            graphics.setColor(pointColor);
+            graphics.setTransition(500);
             graphics.remove(point);
             var toAdd = graphics.drawPoint(x, y);
+            var currentGroup = config.groups[config.groups.length - 1];
             currentGroup.push(toAdd.point);
+            config.points.push(toAdd.point);
 
-            if (pointID % config.m == config.m - 1) {
-                groupID++;
-                config.groups.push(currentGroup);
-                currentGroup = [];
-            }
-            pointID++;
-
-            toAdd.promise.then(function() {
-                if (points.length > 0)
+            // Recurse with animation
+            if (points.length == 0)
+                toggleAnimating();
+            else {
+                if (currentGroup.length == config.m) {
+                    config.groups.push([]);
+                    toAdd.promise.then(function() {
+                        groupPoints(points);
+                    });
+                }
+                else
                     groupPoints(points);
+            }
+        }
+
+        // Start point grouping recursion
+        toggleAnimating();
+        config.groups.push([]);
+        var newPoints = config.points.slice();
+        config.points = [];
+        groupPoints(newPoints);
+        console.log("Config: ", config);
+    }
+
+    /**
+     * Returns 1 for a left turn, -1 for right, and 0 for straight
+     */
+    function turn(p1, p2, p3) {
+        var x1 = p1.attr("cx"), x2 = p2.attr("cx"), x3 = p3.attr("cx");
+        var y1 = p1.attr("cy"), y2 = p2.attr("cy"), y3 = p3.attr("cy");
+        var v = (x2 - x1) * (y3 - y1) - (x3 - x1) * (y2 - y1);
+        if (v > 0) return 1;
+        else if (v < 0) return -1;
+        else return 0;
+    }
+
+    /**
+     * Returns the square of the distance between two D3 points
+     */
+    function sqDist(p1, p2) {
+        var x1 = p1.attr("cx"), x2 = p2.attr("cx");
+        var y1 = p1.attr("cy"), y2 = p2.attr("cy");
+        return (x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2);
+    }
+
+    /**
+     * Runs the Graham Scan step
+     */
+    function runGrahamScanStep() {
+        function grahamScanGroups(groups) {
+            var group = groups.pop();
+            var groupXSorted = group.sort(function(p1, p2) {
+                return p1.attr("cx") > p2.attr("cx") ? 1 : -1;
+            });
+
+            // Find the point with minimum x value and sort all other points radially from it
+            var minPoint = groupXSorted.shift();
+            var groupPolarSorted = groupXSorted.sort(function(p1, p2) {
+                var turnVal = turn(minPoint, p1, p2);
+                if (turnVal == 0)
+                    return sqDist(minPoint, p1) > sqDist(minPoint, p2) ? 1 : -1;
+                else
+                    return turnVal;
+            });
+
+            var radialLines = [];
+            function addRadialLines(group) {
+
+            }
+
+            /*
+                TODO: Do not use radial lines
+                Just show the current convex hull as dictated by the stack
+                Do each group convex hull on its own
+                This way only one line is drawn at a time
+
+                Current issue is that finalPromise is sometimes used before it is ever set in the loop
+            */
+
+            var finalPromise;
+            groupPolarSorted.forEach(function(point) {
+                var groupColor = minPoint.attr("fill");
+                graphics.setColor(groupColor);
+                graphics.setTransition(400);
+                var xA = minPoint.attr("cx");
+                var yA = minPoint.attr("cy");
+                var xB = point.attr("cx");
+                var yB = point.attr("cy");
+
+                var toAdd = graphics.drawLine(xA, yA, xB, yB);
+                radialLines.push({
+                    point: point,
+                    line: toAdd.line
+                });
+                finalPromise = toAdd.promise;
+            });
+
+            var stack = [];
+
+            finalPromise.then(function() {
+                if (groups.length == 0)
+                    toggleAnimating();
+                else {
+                    grahamScanGroups(groups);
+                }
             });
         }
-        groupPoints(config.points.slice());
-        config.groups.push(currentGroup);
-
-        console.log(config.groups);
 
         toggleAnimating();
-    }
-
-    function runGrahamScanStep() {
-        toggleAnimating();
-
-        config.groups.forEach(function(group) {
-            group.forEach(function(pointA) {
-                group.forEach(function(pointB) {
-                    var groupColor = pointA.attr("fill");
-                    graphics.setColor(groupColor);
-                    graphics.setTransition(1000);
-                    var xA = pointA.attr("cx");
-                    var yA = pointA.attr("cy");
-                    var xB = pointB.attr("cx");
-                    var yB = pointB.attr("cy");
-
-                    var toAdd = graphics.drawLine(xA, yA, xB, yB);
-                });
-            });
+        var newGroups = config.groups.map(function(group) {
+            return group.slice();
         });
-
-        toggleAnimating();
+        grahamScanGroups(newGroups);
     }
 
+    /**
+     * Runs the Jarvis March step
+     */
     function runJarvisMarchStep() {
 
     }
 
+    /**
+     * Runs the step that completes the convex hull with Jarvis March
+     */
     function runCompletedHullStep() {
 
     }
 
+    /**
+     * Adds key and mouse listeners to the screen
+     */
     function setFocus() {
-        hotkeys("left,right,space,r", function(event, handler) { onKeyPress(handler.key); });
+        hotkeys("space,r", function(event, handler) { onKeyPress(handler.key); });
         $("#restart-button").on("click", function() { onButtonPress("restart"); });
         $("#replay-button").on("click", function() { onButtonPress("replay"); });
         $("#next-button").on("click", function() { onButtonPress("next"); });
     }
 
+    /**
+     * Handles key press events
+     */
     function onKeyPress(key) {
         if (!animating) {
             if (key == "space")
@@ -229,6 +343,9 @@ var Demo = function() {
         }
     }
 
+    /**
+     * Handles button press events
+     */
     function onButtonPress(button) {
         if (!animating) {
             if (button == "restart")
@@ -241,4 +358,5 @@ var Demo = function() {
     }
 }
 
+// Creates a new demo and runs it
 var demo = new Demo();

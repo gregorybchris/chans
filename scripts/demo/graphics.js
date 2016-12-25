@@ -12,17 +12,27 @@ var Graphics = function(svgID) {
     var svg;
     init();
 
+    /**
+     * Acts as a constructor for the Graphics class
+     */
     function init() {
         svg = d3.select(svgID);
         addGlowEffect();
         setupTypes();
     }
 
+    /**
+     * Creates two groupings for SVG lines and points (circles)
+     *  This enables two layers to be drawn, points over lines
+     */
     function setupTypes() {
         svg.append("g").attr("id", "lines");
         svg.append("g").attr("id", "points");
     }
 
+    /**
+     * Creates a glow effect and adds it to the SVG
+     */
     function addGlowEffect() {
         var defs = svg.append("defs");
         var filter = defs.append("filter")
@@ -37,22 +47,38 @@ var Graphics = function(svgID) {
             .attr("in","SourceGraphic");
     }
 
+    /**
+     * Sets glow to the boolean provided
+     */
     this.setGlow = function(glow) {
         settings.glow = glow;
     }
 
+    /**
+     * Sets the graphics color to the hex string provided (takes string starting with #)
+     */
     this.setColor = function(color) {
         settings.color = color;
     }
 
+    /**
+     * Sets the stroke for drawing lines (takes a number in pixels)
+     */
     this.setStroke = function(stroke) {
         settings.stroke = stroke;
     }
 
+    /**
+     * Sets the time in milliseconds it should take to complete a graphics operation
+     *   A value of zero with not use an animation
+     */
     this.setTransition = function(transition) {
         settings.transition = transition;
     }
 
+    /**
+     * Draws a point to the SVG
+     */
     this.drawPoint = function(x, y) {
         var point = svg.select("#points").append("circle")
             .attr("class", "point")
@@ -72,6 +98,9 @@ var Graphics = function(svgID) {
         };
     }
 
+    /**
+     * Draws a line to the SVG
+     */
     this.drawLine = function(x1, y1, x2, y2) {
         var line = svg.select("#lines").append("line")
             .attr("class", "edge")
@@ -93,18 +122,30 @@ var Graphics = function(svgID) {
         };
     }
 
+    /**
+     * Removes an SVG element from the SVG
+     */
     this.remove = function(element) {
         element.remove();
     }
 
+    /**
+     * Gets the width of the SVG element
+     */
     this.getWidth = function() {
         return parseInt(svg.style("width").replace("px", ""));
     }
 
+    /**
+     * Gets the height of the SVG element
+     */
     this.getHeight = function() {
         return parseInt(svg.style("height").replace("px", ""));
     }
 
+    /**
+     * Clears all SVG elements from the screen
+     */
     this.clearAll = function() {
         svg.selectAll("circle").remove();
         svg.selectAll("line").remove();
