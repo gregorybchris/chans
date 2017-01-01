@@ -123,6 +123,22 @@ var Graphics = function(svgID) {
     }
 
     /**
+     * Removes a line from the SVG
+     */
+    this.removeLine = function(line) {
+        var x1 = line.attr("x1"), x2 = line.attr("x2");
+        var y1 = line.attr("y1"), y2 = line.attr("y2");
+
+        var promise = Velocity(line.node(), { x2: x1, y2: y1 }, {
+            duration: settings.transition
+        }, "easeInSine").then(function() {
+            line.remove();
+        });
+
+        return promise;
+    }
+
+    /**
      * Removes an SVG element from the SVG
      */
     this.remove = function(element) {

@@ -55,7 +55,8 @@ var Demo = function() {
             m: 5,
             points: [],
             groups: [],
-            groupHulls: []
+            groupHulls: [],
+            groupHullLines: []
         }
     }
 
@@ -223,8 +224,8 @@ var Demo = function() {
         var x1 = p1.attr("cx"), x2 = p2.attr("cx"), x3 = p3.attr("cx");
         var y1 = p1.attr("cy"), y2 = p2.attr("cy"), y3 = p3.attr("cy");
         var v = (x2 - x1) * (y3 - y1) - (x3 - x1) * (y2 - y1);
-        if (v > 0) return 1;
-        else if (v < 0) return -1;
+        if (v > 0) return -1;
+        else if (v < 0) return 1;
         else return 0;
     }
 
@@ -243,12 +244,14 @@ var Demo = function() {
     function runGrahamScanStep() {
         function grahamScanGroups(groups) {
             var group = groups.pop();
+
+            // Find the point with minimum x value
             var groupXSorted = group.sort(function(p1, p2) {
                 return p1.attr("cx") > p2.attr("cx") ? 1 : -1;
             });
-
-            // Find the point with minimum x value and sort all other points radially from it
             var minPoint = groupXSorted.shift();
+
+            // Sort all points radially from the minimum x point
             var groupPolarSorted = groupXSorted.sort(function(p1, p2) {
                 var turnVal = turn(minPoint, p1, p2);
                 if (turnVal == 0)
@@ -257,10 +260,72 @@ var Demo = function() {
                     return turnVal;
             });
 
-            var radialLines = [];
-            function addRadialLines(group) {
+            var groupColor = minPoint.attr("fill");
+            graphics.setColor(groupColor);
+            graphics.setTransition(550);
 
+            function scanGroup(group) {
+                // Check if done performing Graham scan on group
+                if (group.length == 0) {
+                    config.groupHulls.push(pointStack);
+                    if (groups.length > 0)
+                        grahamScanGroups(groups);
+                    else
+                        toggleAnimating();
+                }
+                else {
+                    var didRemovePoint = false;
+                    var promise;
+                    if (pointStack.length >= 3) {
+                        var p3 = pointStack.pop();
+                        var p2 = pointStack.pop();
+                        var p1 = pointStack.pop();
+                        var turnVal = turn(p1, p2, p3);
+                        if (turnVal < 0) {
+                            var line1 = lineStack.pop();
+                            var line2 = lineStack.pop();
+                            promise = graphics.removeLine(line1);
+                            promise = graphics.removeLine(line2);
+                            pointStack.push(p1);
+                            group.push(p3);
+                        }
+                        else {
+                            pointStack.push(p1);
+                            pointStack.push(p2);
+                            pointStack.push(p3);
+                        }
+                    }
+
+                    if (!didRemovePoint) {
+                        var stackTopPoint = pointStack[pointStack.length - 1];
+                        var nextPoint = group.pop();
+                        var x1 = stackTopPoint.attr("cx"), y1 = stackTopPoint.attr("cy");
+                        var x2 = nextPoint.attr("cx"), y2 = nextPoint.attr("cy");
+
+                        var toAdd = graphics.drawLine(x1, y1, x2, y2);
+                        lineStack.push(toAdd.line);
+                        pointStack.push(nextPoint);
+                        promise = toAdd.promise;
+                    }
+
+                    promise.then(function() {
+                        scanGroup(group);
+                    });
+                }
             }
+
+            var lineStack = [];
+            var pointStack = [];
+            pointStack.push(minPoint);
+            if (groupPolarSorted.length == 0) {
+                config.groupHulls.push(groupHull);
+                if (groups.length > 0)
+                    grahamScanGroups(groups);
+                else
+                    toggleAnimating();
+            }
+            else
+                scanGroup(groupPolarSorted);
 
             /*
                 TODO: Do not use radial lines
@@ -268,38 +333,34 @@ var Demo = function() {
                 Do each group convex hull on its own
                 This way only one line is drawn at a time
 
-                Current issue is that finalPromise is sometimes used before it is ever set in the loop
+                Current issue is that finalPromise is used when the loop doesn't run b/c group of 1 pt
             */
 
-            var finalPromise;
-            groupPolarSorted.forEach(function(point) {
-                var groupColor = minPoint.attr("fill");
-                graphics.setColor(groupColor);
-                graphics.setTransition(400);
-                var xA = minPoint.attr("cx");
-                var yA = minPoint.attr("cy");
-                var xB = point.attr("cx");
-                var yB = point.attr("cy");
+            // var finalPromise;
+            // groupPolarSorted.forEach(function(point) {
+            //     var groupColor = minPoint.attr("fill");
+            //     graphics.setColor(groupColor);
+            //     graphics.setTransition(400);
+            //     var xA = minPoint.attr("cx");
+            //     var yA = minPoint.attr("cy");
+            //     var xB = point.attr("cx");
+            //     var yB = point.attr("cy");
+            //
+            //     var toAdd = graphics.drawLine(xA, yA, xB, yB);
+            //     radialLines.push({
+            //         point: point,
+            //         line: toAdd.line
+            //     });
+            //     finalPromise = toAdd.promise;
+            // });
 
-                var toAdd = graphics.drawLine(xA, yA, xB, yB);
-                radialLines.push({
-                    point: point,
-                    line: toAdd.line
-                });
-                finalPromise = toAdd.promise;
-            });
-
-            var stack = [];
-
-            finalPromise.then(function() {
-                if (groups.length == 0)
-                    toggleAnimating();
-                else {
-                    grahamScanGroups(groups);
-                }
-            });
+            // finalPromise.then(function() {
+            //     if (groups.length > 0)
+            //         grahamScanGroups(groups);
+            //     else
+            //         toggleAnimating();
+            // });
         }
-
         toggleAnimating();
         var newGroups = config.groups.map(function(group) {
             return group.slice();
