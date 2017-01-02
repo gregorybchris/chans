@@ -243,6 +243,11 @@ var Demo = function() {
 
         // Run Graham Scan on each group
         newGroups.forEach(function(group) {
+            if (group.length == 1) {
+                config.groupHulls.push(group);
+                config.groupHullLines.push([]);
+                return;
+            }
             //Find the point with minimum x value
             var groupXSorted = group.sort(function(p1, p2) {
                 return p1.attr("cx") > p2.attr("cx") ? 1 : -1;
@@ -294,10 +299,10 @@ var Demo = function() {
                 pointStack.push(point);
             });
 
+            pointStack.pop();
             config.groupHulls.push(pointStack);
             config.groupHullLines.push(lineStack);
         });
-
         graphics.whenDone(toggleAnimating);
     }
 
