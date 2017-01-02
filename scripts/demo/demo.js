@@ -177,26 +177,35 @@ var Demo = function() {
         toggleAnimating();
         var currentGroup = [];
         config.points.forEach(function(point) {
-            var groupID = config.groups.length;
-            var pointColor = groupColors[groupID % groupColors.length];
-            graphics.setColor(pointColor);
+            // Erase old, ungrouped point
             graphics.setTransition(0);
             if (currentGroup.length == config.m - 1)
-                graphics.setDelay(300);
+                graphics.setDelay(100);
             else
                 graphics.setDelay(0);
             graphics.erasePoint(point);
+
+            // Get the group color
+            var groupID = config.groups.length;
+            var pointColor = groupColors[groupID % groupColors.length];
+            graphics.setColor(pointColor);
+
+            // Add the new, grouped point
             graphics.setDelay(0);
             graphics.setTransition(0);
             var x = point.attr("cx");
             var y = point.attr("cy");
             var coloredPoint = graphics.drawPoint(x, y);
             currentGroup.push(coloredPoint);
+
+            // Change groups when group is filled
             if (currentGroup.length == config.m) {
                 config.groups.push(currentGroup);
                 currentGroup = [];
             }
         });
+        if (currentGroup.length != 0)
+            config.groups.push(currentGroup);
         graphics.whenDone(toggleAnimating);
     }
 
@@ -207,8 +216,8 @@ var Demo = function() {
         var x1 = p1.attr("cx"), x2 = p2.attr("cx"), x3 = p3.attr("cx");
         var y1 = p1.attr("cy"), y2 = p2.attr("cy"), y3 = p3.attr("cy");
         var v = (x2 - x1) * (y3 - y1) - (x3 - x1) * (y2 - y1);
-        if (v > 0) return -1;
-        else if (v < 0) return 1;
+        if (v > 0) return 1;
+        else if (v < 0) return -1;
         else return 0;
     }
 
@@ -251,31 +260,38 @@ var Demo = function() {
 
             var groupColor = minPoint.attr("fill");
             graphics.setColor(groupColor);
-            graphics.setTransition(250);
+            graphics.setTransition(100);
 
             var lineStack = [];
             var pointStack = [];
             pointStack.push(minPoint);
-            var firstPolarSorted = groupPolarSorted.pop();
+            var firstPolarSorted = groupPolarSorted.shift();
             pointStack.push(firstPolarSorted);
+            graphics.setDelay(100);
             var firstLine = graphics.drawLineFromPoints(minPoint, firstPolarSorted);
             lineStack.push(firstLine);
+            groupPolarSorted.push(minPoint);
+            graphics.setDelay(0);
 
             // Wrap around the group to find the convex hull
             groupPolarSorted.forEach(function(point) {
-                var turnVal = -1;
-                while (turnVal < 0 && pointStack.length >= 2) {
+                // Remove enough points from the hull to maintain convexity
+                var turnVal = 1;
+                while (turnVal > 0 && pointStack.length >= 2) {
                     var p1 = pointStack[pointStack.length - 2];
                     var p2 = pointStack[pointStack.length - 1];
                     turnVal = turn(p1, p2, point);
-                    if (turnVal < 0) {
-                        pointStack.pop();
-                        var line = lineStack.pop();
-                        // graphics.eraseLine(line);
+                    if (turnVal > 0) {
+                        var oldPoint = pointStack.pop();
+                        var oldLine = lineStack.pop();
+                        graphics.eraseLine(oldLine);
                     }
                 }
+                // Add the line for the current point
+                var lastPoint = pointStack[pointStack.length - 1];
+                var nextLine = graphics.drawLineFromPoints(lastPoint, point);
+                lineStack.push(nextLine);
                 pointStack.push(point);
-
             });
 
             config.groupHulls.push(pointStack);
@@ -283,133 +299,6 @@ var Demo = function() {
         });
 
         graphics.whenDone(toggleAnimating);
-
-
-
-        // function grahamScanGroups(groups) {
-        //     var group = groups.pop();
-        //
-        //     // Find the point with minimum x value
-        //     var groupXSorted = group.sort(function(p1, p2) {
-        //         return p1.attr("cx") > p2.attr("cx") ? 1 : -1;
-        //     });
-        //     var minPoint = groupXSorted.shift();
-        //
-        //     // Sort all points radially from the minimum x point
-        //     var groupPolarSorted = groupXSorted.sort(function(p1, p2) {
-        //         var turnVal = turn(minPoint, p1, p2);
-        //         if (turnVal == 0)
-        //             return sqDist(minPoint, p1) > sqDist(minPoint, p2) ? 1 : -1;
-        //         else
-        //             return turnVal;
-        //     });
-        //
-        //     var groupColor = minPoint.attr("fill");
-        //     graphics.setColor(groupColor);
-        //     graphics.setTransition(250);
-        //
-        //     function scanGroup(group) {
-        //
-        //         if (group.length == 0) {
-        //             config.groupHulls.push(pointStack);
-        //             if (groups.length > 0)
-        //                 grahamScanGroups(groups);
-        //             else
-        //                 toggleAnimating();
-        //         }
-        //         else {
-        //             var didRemovePoint = false;
-        //             var promise;
-        //             if (pointStack.length >= 3) {
-        //                 var p3 = pointStack.pop();
-        //                 var p2 = pointStack.pop();
-        //                 var p1 = pointStack.pop();
-        //                 var turnVal = turn(p1, p2, p3);
-        //                 if (turnVal < 0) {
-        //                     var line1 = lineStack.pop();
-        //                     var line2 = lineStack.pop();
-        //                     promise = graphics.removeLine(line1);
-        //                     promise = graphics.removeLine(line2);
-        //                     pointStack.push(p1);
-        //                     group.push(p3);
-        //                 }
-        //                 else {
-        //                     pointStack.push(p1);
-        //                     pointStack.push(p2);
-        //                     pointStack.push(p3);
-        //                 }
-        //             }
-        //
-        //             if (!didRemovePoint) {
-        //                 var stackTopPoint = pointStack[pointStack.length - 1];
-        //                 var nextPoint = group.pop();
-        //                 var x1 = stackTopPoint.attr("cx"), y1 = stackTopPoint.attr("cy");
-        //                 var x2 = nextPoint.attr("cx"), y2 = nextPoint.attr("cy");
-        //
-        //                 var toAdd = graphics.drawLine(x1, y1, x2, y2);
-        //                 lineStack.push(toAdd.line);
-        //                 pointStack.push(nextPoint);
-        //                 promise = toAdd.promise;
-        //             }
-        //
-        //             promise.then(function() {
-        //                 scanGroup(group);
-        //             });
-        //         }
-        //     }
-        //
-        //     var lineStack = [];
-        //     var pointStack = [];
-        //     pointStack.push(minPoint);
-        //     if (groupPolarSorted.length == 0) {
-        //         config.groupHulls.push(groupHull);
-        //         if (groups.length > 0)
-        //             grahamScanGroups(groups);
-        //         else
-        //             toggleAnimating();
-        //     }
-        //     else
-        //         scanGroup(groupPolarSorted);
-        //
-        //     /*
-        //         TODO: Do not use radial lines
-        //         Just show the current convex hull as dictated by the stack
-        //         Do each group convex hull on its own
-        //         This way only one line is drawn at a time
-        //
-        //         Current issue is that finalPromise is used when the loop doesn't run b/c group of 1 pt
-        //     */
-        //
-        //     // var finalPromise;
-        //     // groupPolarSorted.forEach(function(point) {
-        //     //     var groupColor = minPoint.attr("fill");
-        //     //     graphics.setColor(groupColor);
-        //     //     graphics.setTransition(400);
-        //     //     var xA = minPoint.attr("cx");
-        //     //     var yA = minPoint.attr("cy");
-        //     //     var xB = point.attr("cx");
-        //     //     var yB = point.attr("cy");
-        //     //
-        //     //     var toAdd = graphics.drawLine(xA, yA, xB, yB);
-        //     //     radialLines.push({
-        //     //         point: point,
-        //     //         line: toAdd.line
-        //     //     });
-        //     //     finalPromise = toAdd.promise;
-        //     // });
-        //
-        //     // finalPromise.then(function() {
-        //     //     if (groups.length > 0)
-        //     //         grahamScanGroups(groups);
-        //     //     else
-        //     //         toggleAnimating();
-        //     // });
-        // }
-        // toggleAnimating();
-        // var newGroups = config.groups.map(function(group) {
-        //     return group.slice();
-        // });
-        // grahamScanGroups(newGroups);
     }
 
     /**
