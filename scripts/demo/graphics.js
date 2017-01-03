@@ -32,6 +32,23 @@ var Graphics = function(svgID) {
     }
 
     /**
+     * Gives a point object methods to get X and Y coordinates
+     */
+    function giveGetters(point) {
+        point.getX = function() {
+            return parseFloat(this.attr("cx"));
+        }
+
+        point.getY = function() {
+            return parseFloat(this.attr("cy"));
+        }
+
+        point.getColor = function() {
+            return this.attr("fill");
+        }
+    }
+
+    /**
      * Initializes the process queue with a new, empty queue
      */
      function initializeEventQueue() {
@@ -94,6 +111,7 @@ var Graphics = function(svgID) {
             return promise;
         }
         enqueueProcess(animateProcess);
+        giveGetters(point);
         return point;
     }
 
@@ -111,6 +129,7 @@ var Graphics = function(svgID) {
         }, {
             duration: settings.transition
         }, "easeInSine");
+        giveGetters(point);
         return point;
     }
 

@@ -56,7 +56,9 @@ var Demo = function() {
             points: [],
             groups: [],
             groupHulls: [],
-            groupHullLines: []
+            groupHullLines: [],
+            superHull: [],
+            superHullLines: []
         }
     }
 
@@ -170,17 +172,19 @@ var Demo = function() {
      */
     function runGroupingStep() {
         var groupColors = ["#1abc9c", "#3498db", "#9b59b6", "#2ecc71",
-                            "#f1c40f", "#e67e22", "#e74c3c", "#ecf0f1",
+                            "#f1c40f", "#e67e22", "#e74c3c",
                             "#16a085", "#27ae60", "#2980b9", "#8e44ad",
-                            "#f39c12", "#d35400","#c0392b", "#bdc3c7"];
+                            "#f39c12", "#d35400","#c0392b"];
 
         toggleAnimating();
         var currentGroup = [];
         config.points.forEach(function(point) {
+            //TODO: Change if delay to 100
+
             // Erase old, ungrouped point
             graphics.setTransition(0);
             if (currentGroup.length == config.m - 1)
-                graphics.setDelay(100);
+                graphics.setDelay(0);
             else
                 graphics.setDelay(0);
             graphics.erasePoint(point);
@@ -193,8 +197,8 @@ var Demo = function() {
             // Add the new, grouped point
             graphics.setDelay(0);
             graphics.setTransition(0);
-            var x = point.attr("cx");
-            var y = point.attr("cy");
+            var x = point.getX();
+            var y = point.getY();
             var coloredPoint = graphics.drawPoint(x, y);
             currentGroup.push(coloredPoint);
 
@@ -203,7 +207,7 @@ var Demo = function() {
                 config.groups.push(currentGroup);
                 currentGroup = [];
             }
-        });
+        }, currentGroup);
         if (currentGroup.length != 0)
             config.groups.push(currentGroup);
         graphics.whenDone(toggleAnimating);
@@ -213,8 +217,8 @@ var Demo = function() {
      * Returns 1 for a left turn, -1 for right, and 0 for straight
      */
     function turn(p1, p2, p3) {
-        var x1 = p1.attr("cx"), x2 = p2.attr("cx"), x3 = p3.attr("cx");
-        var y1 = p1.attr("cy"), y2 = p2.attr("cy"), y3 = p3.attr("cy");
+        var x1 = p1.getX(), x2 = p2.getX(), x3 = p3.getX();
+        var y1 = p1.getY(), y2 = p2.getY(), y3 = p3.getY();
         var v = (x2 - x1) * (y3 - y1) - (x3 - x1) * (y2 - y1);
         if (v > 0) return 1;
         else if (v < 0) return -1;
@@ -225,8 +229,8 @@ var Demo = function() {
      * Returns the square of the distance between two D3 points
      */
     function sqDist(p1, p2) {
-        var x1 = p1.attr("cx"), x2 = p2.attr("cx");
-        var y1 = p1.attr("cy"), y2 = p2.attr("cy");
+        var x1 = p1.getX(), x2 = p2.getX();
+        var y1 = p1.getY(), y2 = p2.getY();
         return (x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2);
     }
 
@@ -250,7 +254,7 @@ var Demo = function() {
             }
             //Find the point with minimum x value
             var groupXSorted = group.sort(function(p1, p2) {
-                return p1.attr("cx") > p2.attr("cx") ? 1 : -1;
+                return p1.getX() > p2.getX() ? 1 : -1;
             });
             var minPoint = groupXSorted.shift();
 
@@ -263,9 +267,10 @@ var Demo = function() {
                     return turnVal;
             });
 
-            var groupColor = minPoint.attr("fill");
+            var groupColor = minPoint.getColor();
             graphics.setColor(groupColor);
-            graphics.setTransition(100);
+            //TODO: set transition back to 75
+            graphics.setTransition(0);
 
             var lineStack = [];
             var pointStack = [];
@@ -273,13 +278,15 @@ var Demo = function() {
             var firstPolarSorted = groupPolarSorted.shift();
             pointStack.push(firstPolarSorted);
             graphics.setDelay(100);
+            graphics.setStroke(3);
             var firstLine = graphics.drawLineFromPoints(minPoint, firstPolarSorted);
             lineStack.push(firstLine);
             groupPolarSorted.push(minPoint);
             graphics.setDelay(0);
 
             // Wrap around the group to find the convex hull
-            groupPolarSorted.forEach(function(point) {
+            for (var pointIndex = 0; pointIndex < groupPolarSorted.length; pointIndex++) {
+                var point = groupPolarSorted[pointIndex];
                 // Remove enough points from the hull to maintain convexity
                 var turnVal = 1;
                 while (turnVal > 0 && pointStack.length >= 2) {
@@ -297,8 +304,9 @@ var Demo = function() {
                 var nextLine = graphics.drawLineFromPoints(lastPoint, point);
                 lineStack.push(nextLine);
                 pointStack.push(point);
-            });
+            }
 
+            // Add the points (and lines) remaining in the stack to the list of hulls
             pointStack.pop();
             config.groupHulls.push(pointStack);
             config.groupHullLines.push(lineStack);
@@ -310,7 +318,111 @@ var Demo = function() {
      * Runs the Jarvis March step
      */
     function runJarvisMarchStep() {
+        toggleAnimating();
+        // Make a copy of the group hulls to work with
+        var newHulls = config.groupHulls.map(function(hull) {
+            return hull.slice();
+        });
 
+        // Find the x-minimum point from all hulls and it's hull
+        var leftHullIndex = 0;
+        var leftPointIndex = 0;
+        for (var hullIndex = 0; hullIndex < newHulls.length; hullIndex++) {
+            var hull = newHulls[hullIndex];
+            for (var hullPointIndex = 0; hullPointIndex < hull.length; hullPointIndex++) {
+                var hullPoint = hull[hullPointIndex];
+                var leftHullPoint = newHulls[leftHullIndex][leftPointIndex];
+                if (hullPoint.getX() < leftHullPoint.getX()) {
+                    leftHullIndex = hullIndex;
+                    leftPointIndex = hullPointIndex;
+                }
+            }
+        }
+
+        graphics.setColor("#FFF");
+        graphics.setStroke(3);
+        //TODO: reset transition to 100
+        graphics.setTransition(50);
+        graphics.setDelay(0);
+
+        var superHullPoints = [];
+        var superHullLines = [];
+        var currentHullIndex = leftHullIndex;
+        var currentPointIndex = leftPointIndex;
+        var foundFullHull = false;
+
+        // Perform up to m giftwrapping iterations
+        // while (superHullPoints.length < config.m && !foundFullHull) {
+        // while (superHullPoints.length < config.m && !foundFullHull) {
+            var currentPoint = newHulls[currentHullIndex][currentPointIndex];
+            var nextTangentHullIndex = 0;
+            var nextTangentPointIndex = 0;
+            var nextTangentLine;
+
+            // Calculate tangents to each of the group hulls that do not contain
+            //  the current point from which we are searching
+            newHulls.forEach(function(hull, hullIndex) {
+                // Redefine modulus to always return positive
+                function mod(x, y) {
+                    return ((x % y) + y) % y;
+                }
+
+                // Skip over current group hull
+                if (hullIndex != currentHullIndex) {
+                    var startIndex = 0;
+                    var endIndex = hull.length;
+                    var tangentPointIndex;
+
+                    var turnStartPrev = turn(currentPoint, hull[startIndex], hull[endIndex - 1]);
+                    var turnStartNext = turn(currentPoint, hull[startIndex], hull[mod(1, endIndex)]);
+                    // Binary search on group convex hull for the tangent point
+                    var count = 0;
+                    while (startIndex < endIndex) {
+                        count++;
+                        if (count > 10)
+                            break;
+                        tangentPointIndex = Math.floor((startIndex + endIndex) / 2);
+                        var tangentPoint = hull[tangentPointIndex];
+                        var prevPoint = hull[mod(tangentPointIndex - 1, hull.length)];
+                        var nextPoint = hull[mod(tangentPointIndex + 1, hull.length)];
+                        var turnTangent = turn(currentPoint, hull[startIndex], tangentPoint);
+                        var turnPrev = turn(currentPoint, tangentPoint, prevPoint);
+                        var turnNext = turn(currentPoint, tangentPoint, nextPoint);
+
+                        var tangentLine = graphics.drawLineFromPoints(currentPoint, tangentPoint);
+
+                        if (turnPrev <= 0 && turnNext <= 0) {
+                            break;
+                        }
+                        else if ((turnTangent < 0 &&
+                            (turnStartNext > 0 || turnStartPrev == turnStartNext)) ||
+                            (turnTangent > 0 && turnPrev > 0)) {
+                            endIndex = tangentPointIndex;
+                            graphics.eraseLine(tangentLine);
+                        }
+                        else {
+                            startIndex = tangentPointIndex + 1;
+                            turnStartPrev = -1 * turnNext;
+                            turnStartNext = turn(currentPoint, hull[startIndex], hull[mod(startIndex + 1, hull.length)]);
+                            graphics.eraseLine(tangentLine);
+                        }
+                    }
+
+                    var tangentPoint = hull[tangentPointIndex];
+                    // var tangentLine = graphics.drawLineFromPoints(currentPoint, tangentPoint);
+
+
+
+                    //TODO: We've found a tangent point
+                    //  add the point and line to our lists
+                }
+            });
+
+            //TODO: Find the furthest right tangent compared to currentPointIndex
+            //          delete all other lines
+        // }
+
+        graphics.whenDone(toggleAnimating);
     }
 
     /**

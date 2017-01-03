@@ -62,6 +62,8 @@
 						<br /> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 						<a href="http://www.utdallas.edu/~daescu/convexhull.pdf" target="_blank" class="link">Mathematical explanation</a>
 						<br /> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+						<a href="https://www.cs.ucsb.edu/~suri/cs235/ConvexHull.pdf" target="_blank" class="link">Convex hulls pseudocode</a>
+						<br /> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 						<a href="https://bost.ocks.org/mike/algorithms" target="_blank" class="link">Visualizing algorithms</a>
 						<br /> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 						<a href="https://github.com/gregorybchris" target="_blank" class="link">Demo source code</a>
@@ -112,11 +114,11 @@
 						<a class="link" href="https://en.wikipedia.org/wiki/Binary_search_algorithm" target="_blank">binary search</a>
 						to determine the
 						<a class="link" href="https://en.wikipedia.org/wiki/Tangent" target="_blank">tangent</a>
-						between two convex hulls with all points on one side.
+						between an extreme point and a convex hull.
 						A binary search on a small convex hull takes <span class="big-o">O(logm)</span>.</p>
 					<p class="explanation-text">We can compute tangents for all <span class="big-o">O(n/m)</span>
-						groups in <span class="big-o">O(n/m * logm)</span> time. Doing this we get one edge of
-						the convex hull, specifically, the tangent with all <span class="emph">n</span> points on one side.
+						groups in <span class="big-o">O(n/m * logm)</span> time. We use the tangent with the largest angle.
+						By doing this we get one edge of the overall convex hull.
 						We must do this for all <span class="emph">h</span> hull points.</p>
 					<p class="explanation-text">We can assume for now that <span class="emph">m</span> < <span class="emph">h</span> so this step is
 						<span class="big-o">O(nlogh)</span> like the last step.</p>
