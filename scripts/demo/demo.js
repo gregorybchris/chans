@@ -485,18 +485,18 @@ var Demo = function() {
                 break;
         }
 
-        config.points.forEach(function(point) {
-            var x = point.getX(), y = point.getY();
-            graphics.setColor("#AAA");
-            graphics.setTransition(0);
-            var newPoint = graphics.drawPoint(x, y);
-        });
-
         config.groupHullLines.forEach(function(groupHull) {
             groupHull.forEach(function(line) {
                 graphics.setTransition(50);
                 graphics.eraseLine(line);
             });
+        });
+
+        config.points.forEach(function(point) {
+            var x = point.getX(), y = point.getY();
+            graphics.setColor("#AAA");
+            graphics.setTransition(0);
+            var newPoint = graphics.drawPoint(x, y);
         });
 
         graphics.whenDone(toggleAnimating);
