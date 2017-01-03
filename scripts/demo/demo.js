@@ -58,7 +58,8 @@ var Demo = function() {
             groupHulls: [],
             groupHullLines: [],
             superHull: [],
-            superHullLines: []
+            superHullLines: [],
+            fullHull: false
         }
     }
 
@@ -341,23 +342,21 @@ var Demo = function() {
 
         graphics.setColor("#FFF");
         graphics.setStroke(3);
-        //TODO: reset transition to 100
         graphics.setTransition(50);
         graphics.setDelay(0);
 
-        var superHullPoints = [];
+        var superHullHullIndices = [];
+        var superHullPointIndices = [];
         var superHullLines = [];
         var currentHullIndex = leftHullIndex;
         var currentPointIndex = leftPointIndex;
-        var foundFullHull = false;
 
         // Perform up to m giftwrapping iterations
-        // while (superHullPoints.length < config.m && !foundFullHull) {
-        // while (superHullPoints.length < config.m && !foundFullHull) {
+        while (superHullPointIndices.length < config.m && !config.fullHull) {
             var currentPoint = newHulls[currentHullIndex][currentPointIndex];
             var nextTangentHullIndex = 0;
             var nextTangentPointIndex = 0;
-            var nextTangentLine;
+            var nextTangentLine = undefined;
 
             // Calculate tangents to each of the group hulls that do not contain
             //  the current point from which we are searching
@@ -372,15 +371,12 @@ var Demo = function() {
                     var startIndex = 0;
                     var endIndex = hull.length;
                     var tangentPointIndex;
+                    var tangentLine;
 
                     var turnStartPrev = turn(currentPoint, hull[startIndex], hull[endIndex - 1]);
                     var turnStartNext = turn(currentPoint, hull[startIndex], hull[mod(1, endIndex)]);
                     // Binary search on group convex hull for the tangent point
-                    var count = 0;
                     while (startIndex < endIndex) {
-                        count++;
-                        if (count > 10)
-                            break;
                         tangentPointIndex = Math.floor((startIndex + endIndex) / 2);
                         var tangentPoint = hull[tangentPointIndex];
                         var prevPoint = hull[mod(tangentPointIndex - 1, hull.length)];
@@ -389,38 +385,71 @@ var Demo = function() {
                         var turnPrev = turn(currentPoint, tangentPoint, prevPoint);
                         var turnNext = turn(currentPoint, tangentPoint, nextPoint);
 
-                        var tangentLine = graphics.drawLineFromPoints(currentPoint, tangentPoint);
+                        var testLine = graphics.drawLineFromPoints(currentPoint, tangentPoint);
 
+                        // Test three cases of potential tangent line piercing convex hull
                         if (turnPrev <= 0 && turnNext <= 0) {
+                            tangentLine = testLine;
                             break;
                         }
                         else if ((turnTangent < 0 &&
                             (turnStartNext > 0 || turnStartPrev == turnStartNext)) ||
                             (turnTangent > 0 && turnPrev > 0)) {
                             endIndex = tangentPointIndex;
-                            graphics.eraseLine(tangentLine);
+                            graphics.eraseLine(testLine);
                         }
                         else {
                             startIndex = tangentPointIndex + 1;
                             turnStartPrev = -1 * turnNext;
                             turnStartNext = turn(currentPoint, hull[startIndex], hull[mod(startIndex + 1, hull.length)]);
-                            graphics.eraseLine(tangentLine);
+                            graphics.eraseLine(testLine);
                         }
                     }
 
+                    // Test if the current hull tangent line is the most extreme tangent found
+                    //      for this iteration of gift wrapping
                     var tangentPoint = hull[tangentPointIndex];
-                    // var tangentLine = graphics.drawLineFromPoints(currentPoint, tangentPoint);
-
-
-
-                    //TODO: We've found a tangent point
-                    //  add the point and line to our lists
+                    var currentBestTangentPoint = newHulls[nextTangentHullIndex][nextTangentPointIndex];
+                    if (turn(currentPoint, currentBestTangentPoint, tangentPoint) > 0 || nextTangentLine === undefined) {
+                        if (nextTangentLine !== undefined)
+                            graphics.eraseLine(nextTangentLine);
+                        nextTangentHullIndex = hullIndex;
+                        nextTangentPointIndex = tangentPointIndex;
+                        nextTangentLine = tangentLine;
+                    }
+                    else
+                        graphics.eraseLine(tangentLine);
                 }
             });
 
-            //TODO: Find the furthest right tangent compared to currentPointIndex
-            //          delete all other lines
-        // }
+            // Test if the extreme tangent found is less extreme than the next
+            //      point on the current group's convex hull
+            var currentBestTangentPoint = newHulls[nextTangentHullIndex][nextTangentPointIndex];
+            var currentHull = newHulls[currentHullIndex];
+            var nextPointIndex = (currentPointIndex + 1) % currentHull.length;
+            var currentHullNextPoint = currentHull[nextPointIndex];
+            if (turn(currentPoint, currentBestTangentPoint, currentHullNextPoint) > 0) {
+                graphics.eraseLine(nextTangentLine);
+                nextTangentLine = graphics.drawLineFromPoints(currentPoint, currentHullNextPoint);
+                nextTangentHullIndex = currentHullIndex;
+                nextTangentPointIndex = nextPointIndex;
+            }
+
+            // Check if we completed the hull early (only has 3 or 4 points)
+            if (superHullHullIndices[0] == nextTangentHullIndex &&
+                    superHullPointIndices[0] == nextTangentPointIndex) {
+                config.fullHull = true;
+            }
+
+            // Save off current results for the overall convex hull
+            superHullHullIndices.push(nextTangentHullIndex);
+            superHullPointIndices.push(nextTangentPointIndex);
+            superHullLines.push(nextTangentLine);
+            config.superHull.push(newHulls[nextTangentHullIndex][nextTangentPointIndex]);
+            config.superHullLines.push(nextTangentLine);
+            currentHullIndex = nextTangentHullIndex;
+            currentPointIndex = nextTangentPointIndex;
+        }
 
         graphics.whenDone(toggleAnimating);
     }
@@ -429,7 +458,26 @@ var Demo = function() {
      * Runs the step that completes the convex hull with Jarvis March
      */
     function runCompletedHullStep() {
+        toggleAnimating();
 
+        // config.groups: [],
+        // groupHulls: [],
+        // groupHullLines: [],
+        // superHull: [],
+        // superHullLines: [],
+        // fullHull: false
+        //
+        // for (var t = 0; t >= 0; t++) {
+        //     if (config.fullHull)
+        //         break;
+        //
+        //     config.superHull = [];
+        //
+        // }
+        // config.superHull.push(newHulls[nextTangentHullIndex][nextTangentPointIndex]);
+        // config.superHullLines.push(nextTangentLine);
+        //
+        // graphics.whenDone(toggleAnimating);
     }
 
     /**
