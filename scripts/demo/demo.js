@@ -180,12 +180,10 @@ var Demo = function() {
         toggleAnimating();
         var currentGroup = [];
         config.points.forEach(function(point) {
-            //TODO: Change if delay to 100
-
             // Erase old, ungrouped point
             graphics.setTransition(0);
             if (currentGroup.length == config.m - 1)
-                graphics.setDelay(0);
+                graphics.setDelay(40);
             else
                 graphics.setDelay(0);
             graphics.erasePoint(point);
@@ -270,8 +268,7 @@ var Demo = function() {
 
             var groupColor = minPoint.getColor();
             graphics.setColor(groupColor);
-            //TODO: set transition back to 75
-            graphics.setTransition(0);
+            graphics.setTransition(30);
 
             var lineStack = [];
             var pointStack = [];
@@ -342,7 +339,7 @@ var Demo = function() {
 
         graphics.setColor("#FFF");
         graphics.setStroke(3);
-        graphics.setTransition(50);
+        graphics.setTransition(30);
         graphics.setDelay(0);
 
         var superHullHullIndices = [];
@@ -460,24 +457,49 @@ var Demo = function() {
     function runCompletedHullStep() {
         toggleAnimating();
 
-        // config.groups: [],
-        // groupHulls: [],
-        // groupHullLines: [],
-        // superHull: [],
-        // superHullLines: [],
-        // fullHull: false
-        //
-        // for (var t = 0; t >= 0; t++) {
-        //     if (config.fullHull)
-        //         break;
-        //
-        //     config.superHull = [];
-        //
-        // }
-        // config.superHull.push(newHulls[nextTangentHullIndex][nextTangentPointIndex]);
-        // config.superHullLines.push(nextTangentLine);
-        //
-        // graphics.whenDone(toggleAnimating);
+        function clearConfiguration() {
+            graphics.clearAll();
+            config.groups = [];
+            config.groupHulls = [];
+            config.groupHullLines = [];
+            config.superHull = [];
+            config.superHullLines = [];
+        }
+
+        for (var t = 2; t >= 0; t++) {
+            config.m = Math.pow(2, Math.pow(2, t))
+            clearConfiguration();
+            var newPoints = [];
+            config.points.forEach(function(point) {
+                var x = point.getX(), y = point.getY();
+                var newPoint = graphics.putPoint(x, y);
+                newPoints.push(newPoint);
+            });
+            config.points = newPoints;
+
+            runGroupingStep();
+            runGrahamScanStep();
+            runJarvisMarchStep();
+
+            if (config.fullHull)
+                break;
+        }
+
+        config.points.forEach(function(point) {
+            var x = point.getX(), y = point.getY();
+            graphics.setColor("#AAA");
+            graphics.setTransition(0);
+            var newPoint = graphics.drawPoint(x, y);
+        });
+
+        config.groupHullLines.forEach(function(groupHull) {
+            groupHull.forEach(function(line) {
+                graphics.setTransition(50);
+                graphics.eraseLine(line);
+            });
+        });
+
+        graphics.whenDone(toggleAnimating);
     }
 
     /**
