@@ -9,8 +9,7 @@ var Demo = function() {
     var JARVIS_MARCH_STEP = 4;
     var COMPLETED_HULL_STEP = 5;
 
-    var lastStep = 5;
-    var step = 0;
+    var step = WELCOME_STEP;
     var animating = false;
     var config;
     var graphics;
@@ -60,7 +59,7 @@ var Demo = function() {
             superHull: [],
             superHullLines: [],
             fullHull: false
-        }
+        };
     }
 
     /**
@@ -108,7 +107,7 @@ var Demo = function() {
         if (step == WELCOME_STEP)
             moveOn(runCreationStep);
         else if (step == CREATION_STEP)
-            endCreationStep(function() { moveOn(runGroupingStep) });
+            endCreationStep(function() { moveOn(runGroupingStep); });
         else if (step == GROUPING_STEP)
             moveOn(runGrahamScanStep);
         else if (step == GRAHAM_SCAN_STEP)
@@ -116,7 +115,7 @@ var Demo = function() {
         else if (step == JARVIS_MARCH_STEP)
             moveOn(runCompletedHullStep);
         else if (step == COMPLETED_HULL_STEP)
-            swal("Unimplemented", "Sorry, not done yet");
+            restartDemo();
     }
 
     /**
@@ -131,12 +130,12 @@ var Demo = function() {
             }
             var width = graphics.getWidth();
             var height = graphics.getHeight();
-            var influence = .7;
+            var influence = 0.7;
             var xBias = width / 2, yBias = height / 2;
-            var xMin = width * .05, xMax = width - xMin;
-            var yMin = height * .05, yMax = height - yMin;
-            var x = crand(xMin, xMax, xBias, influence)
-            var y = crand(yMin, yMax, yBias, influence)
+            var xMin = width * 0.05, xMax = width - xMin;
+            var yMin = height * 0.05, yMax = height - yMin;
+            var x = crand(xMin, xMax, xBias, influence);
+            var y = crand(yMin, yMax, yBias, influence);
             return graphics.putPoint(x, y);
         }
 
@@ -292,7 +291,7 @@ var Demo = function() {
                     var p2 = pointStack[pointStack.length - 1];
                     turnVal = turn(p1, p2, point);
                     if (turnVal > 0) {
-                        var oldPoint = pointStack.pop();
+                        pointStack.pop();
                         var oldLine = lineStack.pop();
                         graphics.eraseLine(oldLine);
                     }
@@ -322,6 +321,26 @@ var Demo = function() {
             return hull.slice();
         });
 
+        graphics.setColor("#FFF");
+        graphics.setStroke(3);
+        graphics.setTransition(30);
+        graphics.setDelay(0);
+
+        // Check to see if there is just 1 hull and no tangents to find
+        if (newHulls.length == 1) {
+            var hull = newHulls[0];
+            for (var hullIndex = 0; hullIndex < hull.length; hullIndex++) {
+                var pointA = hull[hullIndex];
+                var pointB = hull[(hullIndex + 1) % hull.length];
+                var nextLine = graphics.drawLineFromPoints(pointA, pointB);
+                config.superHull.push(pointA);
+                config.superHullLines.push(nextLine);
+            }
+            config.fullHull = true;
+            graphics.whenDone(toggleAnimating);
+            return;
+        }
+
         // Find the x-minimum point from all hulls and it's hull
         var leftHullIndex = 0;
         var leftPointIndex = 0;
@@ -337,10 +356,10 @@ var Demo = function() {
             }
         }
 
-        graphics.setColor("#FFF");
-        graphics.setStroke(3);
-        graphics.setTransition(30);
-        graphics.setDelay(0);
+        // Redefine modulus to always return positive
+        function mod(x, y) {
+            return ((x % y) + y) % y;
+        }
 
         var superHullHullIndices = [];
         var superHullPointIndices = [];
@@ -358,11 +377,6 @@ var Demo = function() {
             // Calculate tangents to each of the group hulls that do not contain
             //  the current point from which we are searching
             newHulls.forEach(function(hull, hullIndex) {
-                // Redefine modulus to always return positive
-                function mod(x, y) {
-                    return ((x % y) + y) % y;
-                }
-
                 // Skip over current group hull
                 if (hullIndex != currentHullIndex) {
                     var startIndex = 0;
@@ -457,47 +471,51 @@ var Demo = function() {
     function runCompletedHullStep() {
         toggleAnimating();
 
-        function clearConfiguration() {
-            graphics.clearAll();
-            config.groups = [];
-            config.groupHulls = [];
-            config.groupHullLines = [];
-            config.superHull = [];
-            config.superHullLines = [];
-        }
-
         for (var t = 2; t >= 0; t++) {
-            config.m = Math.pow(2, Math.pow(2, t))
-            clearConfiguration();
-            var newPoints = [];
-            config.points.forEach(function(point) {
-                var x = point.getX(), y = point.getY();
-                var newPoint = graphics.putPoint(x, y);
-                newPoints.push(newPoint);
-            });
-            config.points = newPoints;
+            graphics.whenDone(function() {
+                config.m = Math.pow(2, Math.pow(2, t));
+                console.log("Iteration: ", "t=" + t + ", m=" + config.m);
 
-            runGroupingStep();
-            runGrahamScanStep();
-            runJarvisMarchStep();
+                graphics.clearAllQueued();
+                graphics.whenDone(function() {
+                    config.groups = [];
+                    config.groupHulls = [];
+                    config.groupHullLines = [];
+                    config.superHull = [];
+                    config.superHullLines = [];
+                });
+
+                // Add new gray points to the screen
+                var newPoints = [];
+                config.points.forEach(function(point) {
+                    var x = point.getX(), y = point.getY();
+                    var newPoint = graphics.drawPoint(x, y);
+                    newPoints.push(newPoint);
+                });
+                config.points = newPoints;
+
+                runGroupingStep();
+                runGrahamScanStep();
+                runJarvisMarchStep();
+            });
 
             if (config.fullHull)
                 break;
         }
-
-        config.groupHullLines.forEach(function(groupHull) {
-            groupHull.forEach(function(line) {
-                graphics.setTransition(50);
-                graphics.eraseLine(line);
-            });
-        });
-
-        config.points.forEach(function(point) {
-            var x = point.getX(), y = point.getY();
-            graphics.setColor("#AAA");
-            graphics.setTransition(0);
-            var newPoint = graphics.drawPoint(x, y);
-        });
+        //
+        // config.groupHullLines.forEach(function(groupHull) {
+        //     groupHull.forEach(function(line) {
+        //         graphics.setTransition(50);
+        //         graphics.eraseLine(line);
+        //     });
+        // });
+        //
+        // config.points.forEach(function(point) {
+        //     var x = point.getX(), y = point.getY();
+        //     graphics.setColor("#AAA");
+        //     graphics.setTransition(0);
+        //     var newPoint = graphics.drawPoint(x, y);
+        // });
 
         graphics.whenDone(toggleAnimating);
     }
@@ -537,7 +555,7 @@ var Demo = function() {
                 nextStep();
         }
     }
-}
+};
 
 // Creates a new demo and runs it
 var demo = new Demo();

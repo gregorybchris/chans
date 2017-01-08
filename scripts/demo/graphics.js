@@ -264,6 +264,18 @@ var Graphics = function(svgID) {
     }
 
     /**
+     * Clears all SVG elements from the screen using the queue
+     */
+    this.clearAllQueued = function() {
+        function removeAll() {
+            svg.selectAll("circle").remove();
+            svg.selectAll("line").remove();
+            return new Promise(function(resolve, reject) { resolve(); });
+        }
+        enqueueProcess(removeAll);
+    }
+
+    /**
      * Clears all SVG elements from the screen
      */
     this.clearAll = function() {
