@@ -14,9 +14,9 @@ Chan's Algorithm (named after it's inventor, Timothy M. Chan) is an optimal outp
 
 The reason I chose to do my final project on Chan's algorithm is because of three features that make this algorithm particularly interesting to me.
 
- - Utilizes other (slower) algorithms to achieve a faster result
- - Throws away valuable work and starts over
- - Uses a geometric progression to reduce a potentially quadratic runtime
+- Utilizes other (slower) algorithms to achieve a faster result.
+- Throws away valuable work and starts over.
+- Uses a geometric progression to reduce a part of the overall runtime from potentially quadratic to linear.
 
 ### Goals
 
