@@ -316,6 +316,15 @@ var Demo = function() {
      */
     function runJarvisMarchStep() {
         toggleAnimating();
+        runJarvisMarch(true);
+        graphics.whenDone(toggleAnimating);
+    }
+
+    /**
+     * Core Jarvis March (gift wrapping) logic
+     * @param limitToM - if true, stops after config.m iterations
+     */
+    function runJarvisMarch(limitToM) {
         // Make a copy of the group hulls to work with
         var newHulls = config.groupHulls.map(function(hull) {
             return hull.slice();
@@ -337,7 +346,6 @@ var Demo = function() {
                 config.superHullLines.push(nextLine);
             }
             config.fullHull = true;
-            graphics.whenDone(toggleAnimating);
             return;
         }
 
@@ -367,8 +375,8 @@ var Demo = function() {
         var currentHullIndex = leftHullIndex;
         var currentPointIndex = leftPointIndex;
 
-        // Perform up to m giftwrapping iterations
-        while (superHullPointIndices.length < config.m && !config.fullHull) {
+        // Perform giftwrapping iterations (limited to m if limitToM is true)
+        while ((!limitToM || superHullPointIndices.length < config.m) && !config.fullHull) {
             var currentPoint = newHulls[currentHullIndex][currentPointIndex];
             var nextTangentHullIndex = 0;
             var nextTangentPointIndex = 0;
@@ -461,8 +469,6 @@ var Demo = function() {
             currentHullIndex = nextTangentHullIndex;
             currentPointIndex = nextTangentPointIndex;
         }
-
-        graphics.whenDone(toggleAnimating);
     }
 
     /**
@@ -471,53 +477,46 @@ var Demo = function() {
     function runCompletedHullStep() {
         toggleAnimating();
 
-        for (var t = 2; t >= 0; t++) {
+        // Erase the partial super hull lines from step 4
+        graphics.setTransition(50);
+        graphics.setDelay(0);
+        config.superHullLines.forEach(function(line) {
+            graphics.eraseLine(line);
+        });
+
+        // After erasure completes, reset state and run the full march
+        graphics.whenDone(function() {
+            config.superHull = [];
+            config.superHullLines = [];
+            config.fullHull = false;
+
+            runJarvisMarch(false);
+
+            // Erase the colored group hull lines
             graphics.whenDone(function() {
-                config.m = Math.pow(2, Math.pow(2, t));
-                console.log("Iteration: ", "t=" + t + ", m=" + config.m);
-
-                graphics.clearAllQueued();
-                graphics.whenDone(function() {
-                    config.groups = [];
-                    config.groupHulls = [];
-                    config.groupHullLines = [];
-                    config.superHull = [];
-                    config.superHullLines = [];
+                graphics.setTransition(50);
+                graphics.setDelay(0);
+                config.groupHullLines.forEach(function(groupHull) {
+                    groupHull.forEach(function(line) {
+                        graphics.eraseLine(line);
+                    });
                 });
-
-                // Add new gray points to the screen
-                var newPoints = [];
-                config.points.forEach(function(point) {
-                    var x = point.getX(), y = point.getY();
-                    var newPoint = graphics.drawPoint(x, y);
-                    newPoints.push(newPoint);
-                });
-                config.points = newPoints;
-
-                runGroupingStep();
-                runGrahamScanStep();
-                runJarvisMarchStep();
             });
 
-            if (config.fullHull)
-                break;
-        }
-        //
-        // config.groupHullLines.forEach(function(groupHull) {
-        //     groupHull.forEach(function(line) {
-        //         graphics.setTransition(50);
-        //         graphics.eraseLine(line);
-        //     });
-        // });
-        //
-        // config.points.forEach(function(point) {
-        //     var x = point.getX(), y = point.getY();
-        //     graphics.setColor("#AAA");
-        //     graphics.setTransition(0);
-        //     var newPoint = graphics.drawPoint(x, y);
-        // });
+            // Recolor all points to white
+            graphics.whenDone(function() {
+                graphics.setColor("#FFF");
+                graphics.setTransition(0);
+                graphics.setDelay(0);
+                config.points.forEach(function(point) {
+                    var x = point.getX(), y = point.getY();
+                    graphics.erasePoint(point);
+                    graphics.drawPoint(x, y);
+                });
+            });
 
-        graphics.whenDone(toggleAnimating);
+            graphics.whenDone(toggleAnimating);
+        });
     }
 
     /**
