@@ -29,3 +29,4 @@ The reason I chose to do my final project on Chan's algorithm is because of thre
 - D3.js
 - Velocity.js
 - Less.js
+- jQuery
